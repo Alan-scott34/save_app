@@ -85,7 +85,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
           behavior: SnackBarBehavior.floating,
         ),
       );
-      context.go('/expense');
+      context.pop();
     }
   }
 
@@ -320,7 +320,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
         Row(
           children: [
             GestureDetector(
-              onTap: () => context.go('/image-capture'),
+              onTap: () => context.push('/image-capture'),
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -354,7 +354,7 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
             ),
             const SizedBox(width: AppSpacing.sm),
             GestureDetector(
-              onTap: () => context.go('/voice-recording'),
+              onTap: () => context.push('/voice-recording'),
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,

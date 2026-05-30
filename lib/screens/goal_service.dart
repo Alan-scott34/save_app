@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'app_models.dart';
-import 'constants.dart';
 
 /// ============================================
 /// GOAL SERVICE — Service de gestion des objectifs
@@ -50,9 +49,10 @@ class GoalService extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      await Future.delayed(const Duration(seconds: 1));
+      await Future.delayed(const Duration(milliseconds: 500));
 
-      _goals = _generateMockGoals();
+      // Start with empty list
+      _goals = [];
     } catch (e) {
       debugPrint('Error loading goals: $e');
     } finally {
@@ -118,54 +118,5 @@ class GoalService extends ChangeNotifier {
     } catch (e) {
       return null;
     }
-  }
-
-  /// Génère des données fictives
-  List<GoalModel> _generateMockGoals() {
-    final now = DateTime.now();
-
-    return [
-      GoalModel(
-        id: 'goal_001',
-        title: 'Emergency Fund',
-        description: 'Build a 6-month emergency fund',
-        targetAmount: 1500000.0,
-        currentAmount: 750000.0,
-        deadline: DateTime(now.year + 1, now.month, now.day),
-        priority: GoalPriority.high,
-        isEmergencyFund: true,
-        isAchieved: false,
-        createdAt: now,
-        updatedAt: now,
-      ),
-
-      GoalModel(
-        id: 'goal_002',
-        title: 'New Laptop',
-        description: 'MacBook Pro for freelance work',
-        targetAmount: 800000.0,
-        currentAmount: 520000.0,
-        deadline: DateTime(now.year, now.month + 3, now.day),
-        priority: GoalPriority.medium,
-        isEmergencyFund: false,
-        isAchieved: false,
-        createdAt: now,
-        updatedAt: now,
-      ),
-
-      GoalModel(
-        id: 'goal_003',
-        title: 'Vacation Trip',
-        description: 'Summer vacation to Douala',
-        targetAmount: 300000.0,
-        currentAmount: 180000.0,
-        deadline: DateTime(now.year, 7, 15),
-        priority: GoalPriority.low,
-        isEmergencyFund: false,
-        isAchieved: false,
-        createdAt: now,
-        updatedAt: now,
-      ),
-    ];
   }
 }

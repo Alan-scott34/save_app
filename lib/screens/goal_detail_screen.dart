@@ -49,7 +49,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
             actions: [
               IconButton(
                 icon: const Icon(LucideIcons.pencil),
-                onPressed: () => context.go('/goals/edit/${goal.id}'),
+                onPressed: () => context.push('/goals/edit/${goal.id}'),
               ),
               IconButton(
                 icon: const Icon(LucideIcons.trash2),
@@ -392,7 +392,7 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
                 ).deleteGoal(goal.id!);
               }
               Navigator.pop(context);
-              context.go('/goals');
+              context.pop();
             },
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
             child: const Text('Delete'),

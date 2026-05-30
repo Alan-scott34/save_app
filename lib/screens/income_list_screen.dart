@@ -41,10 +41,7 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
       appBar: AppBar(
         title: const Text('Income'),
         actions: [
-          IconButton(
-            icon: const Icon(LucideIcons.search),
-            onPressed: () {},
-          ),
+          IconButton(icon: const Icon(LucideIcons.search), onPressed: () {}),
           IconButton(
             icon: const Icon(LucideIcons.filter),
             onPressed: _showFilterSheet,
@@ -54,9 +51,7 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
       body: Consumer<TransactionService>(
         builder: (context, service, child) {
           if (service.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           // Apply filters
@@ -96,12 +91,9 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.go('/income/add'),
+        onPressed: () => context.push('/income/add'),
         backgroundColor: AppColors.income,
-        child: const Icon(
-          LucideIcons.plus,
-          color: Colors.white,
-        ),
+        child: const Icon(LucideIcons.plus, color: Colors.white),
       ),
     );
   }
@@ -128,11 +120,7 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
         children: [
           const Row(
             children: [
-              Icon(
-                LucideIcons.trendingUp,
-                color: Colors.white70,
-                size: 18,
-              ),
+              Icon(LucideIcons.trendingUp, color: Colors.white70, size: 18),
               SizedBox(width: 8),
               Text(
                 'Total Income',
@@ -173,16 +161,12 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
       height: 40,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
         children: TimePeriod.values.map((period) {
           final isSelected = period == _selectedPeriod;
 
           return Padding(
-            padding: const EdgeInsets.only(
-              right: AppSpacing.sm,
-            ),
+            padding: const EdgeInsets.only(right: AppSpacing.sm),
             child: ChoiceChip(
               label: Text(period.label),
               selected: isSelected,
@@ -194,19 +178,13 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
               backgroundColor: AppColors.surface,
               selectedColor: AppColors.primary.withValues(alpha: 0.15),
               side: BorderSide(
-                color: isSelected
-                    ? AppColors.primary
-                    : AppColors.border,
+                color: isSelected ? AppColors.primary : AppColors.border,
               ),
               labelStyle: TextStyle(
                 fontFamily: 'Poppins',
                 fontSize: 12,
-                fontWeight: isSelected
-                    ? FontWeight.w600
-                    : FontWeight.w400,
-                color: isSelected
-                    ? AppColors.primary
-                    : AppColors.textSecondary,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                color: isSelected ? AppColors.primary : AppColors.textSecondary,
               ),
             ),
           );
@@ -224,14 +202,9 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
         padding: const EdgeInsets.only(right: 20),
         decoration: BoxDecoration(
           color: AppColors.error,
-          borderRadius: BorderRadius.circular(
-            AppSpacing.radiusMd,
-          ),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
         ),
-        child: const Icon(
-          LucideIcons.trash2,
-          color: Colors.white,
-        ),
+        child: const Icon(LucideIcons.trash2, color: Colors.white),
       ),
       onDismissed: (_) {
         if (income.id != null) {
@@ -244,19 +217,15 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
       child: GestureDetector(
         onTap: () {
           if (income.id != null) {
-            context.go('/income/edit/${income.id}');
+            context.push('/income/edit/${income.id}');
           }
         },
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
             color: AppColors.surface,
-            borderRadius: BorderRadius.circular(
-              AppSpacing.radiusMd,
-            ),
-            border: Border.all(
-              color: AppColors.border,
-            ),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+            border: Border.all(color: AppColors.border),
           ),
           child: Row(
             children: [
@@ -264,9 +233,7 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: Color(
-                    income.category.color,
-                  ).withValues(alpha: 0.1),
+                  color: Color(income.category.color).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Center(
@@ -280,22 +247,18 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       income.category.label,
                       style: AppTypography.titleMedium,
                     ),
-                    if (income.note != null &&
-                        income.note!.isNotEmpty) ...[
+                    if (income.note != null && income.note!.isNotEmpty) ...[
                       const SizedBox(height: 2),
                       Text(
                         income.note!,
-                        style: AppTypography.bodySmall
-                            .copyWith(
-                          color:
-                              AppColors.textTertiary,
+                        style: AppTypography.bodySmall.copyWith(
+                          color: AppColors.textTertiary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -305,24 +268,20 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
                 ),
               ),
               Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
                     '+ ${Currency.xaf.symbol} '
                     '${_formatAmount(income.amount)}',
-                    style: AppTypography.titleMedium
-                        .copyWith(
+                    style: AppTypography.titleMedium.copyWith(
                       color: AppColors.income,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   Text(
                     _formatDate(income.date),
-                    style: AppTypography.bodySmall
-                        .copyWith(
-                      color:
-                          AppColors.textTertiary,
+                    style: AppTypography.bodySmall.copyWith(
+                      color: AppColors.textTertiary,
                     ),
                   ),
                 ],
@@ -362,7 +321,7 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
             ),
             const SizedBox(height: AppSpacing.xl),
             ElevatedButton(
-              onPressed: () => context.go('/income/add'),
+              onPressed: () => context.push('/income/add'),
               child: const Text('Add Income'),
             ),
           ],
@@ -377,17 +336,14 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(
-            AppSpacing.radiusXl,
-          ),
+          top: Radius.circular(AppSpacing.radiusXl),
         ),
       ),
       builder: (context) => Padding(
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               'Filter by Category',
@@ -397,26 +353,19 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
             Wrap(
               spacing: 8,
               runSpacing: 8,
-              children: IncomeCategory.values
-                  .map((category) {
-                final isSelected =
-                    _selectedCategory == category;
+              children: IncomeCategory.values.map((category) {
+                final isSelected = _selectedCategory == category;
 
                 return ChoiceChip(
                   label: Text(category.label),
                   selected: isSelected,
                   onSelected: (_) {
                     setState(() {
-                      _selectedCategory =
-                          isSelected
-                              ? null
-                              : category;
+                      _selectedCategory = isSelected ? null : category;
                     });
                     Navigator.pop(context);
                   },
-                  selectedColor: Color(
-                    category.color,
-                  ).withValues(alpha: 0.15),
+                  selectedColor: Color(category.color).withValues(alpha: 0.15),
                   side: BorderSide(
                     color: isSelected
                         ? Color(category.color)
@@ -442,10 +391,7 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
     return amount
         .abs()
         .toStringAsFixed(0)
-        .replaceAllMapped(
-          RegExp(r'\B(?=(\d{3})+(?!\d))'),
-          (match) => ',',
-        );
+        .replaceAllMapped(RegExp(r'\B(?=(\d{3})+(?!\d))'), (match) => ',');
   }
 
   static String _formatDate(DateTime date) {

@@ -83,7 +83,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.go('/expense/add'),
+        onPressed: () => context.push('/expense/add'),
         backgroundColor: AppColors.expense,
         child: const Icon(LucideIcons.plus, color: Colors.white),
       ),
@@ -185,7 +185,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
         }
       },
       child: GestureDetector(
-        onTap: () => context.go('/expense/edit/${expense.id}'),
+        onTap: () => context.push('/expense/edit/${expense.id}'),
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
@@ -282,7 +282,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
           ),
           const SizedBox(height: AppSpacing.xl),
           ElevatedButton(
-            onPressed: () => context.go('/expense/add'),
+            onPressed: () => context.push('/expense/add'),
             child: const Text('Add Expense'),
           ),
         ],

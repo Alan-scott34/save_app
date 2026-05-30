@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'app_theme.dart';
 
@@ -63,7 +65,7 @@ class _VoiceRecordingScreenState extends State<VoiceRecordingScreen>
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    _loadMockVoiceNotes();
+    _loadSavedVoiceNotes();
   }
 
   @override
@@ -74,35 +76,35 @@ class _VoiceRecordingScreenState extends State<VoiceRecordingScreen>
   }
 
   // =============================================
-  // LOAD MOCK NOTES
+  // PERSISTED VOICE NOTES
   // =============================================
 
-  void _loadMockVoiceNotes() {
-    _voiceNotes.addAll([
-      VoiceNote(
-        id: 'vn_001',
-        title: 'Grocery shopping note',
-        duration: const Duration(seconds: 15),
-        date: DateTime.now().subtract(const Duration(hours: 2)),
-        isSynced: true,
-      ),
+  Future<void> _loadSavedVoiceNotes() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedJson = prefs.getString('saved_voice_notes');
 
-      VoiceNote(
-        id: 'vn_002',
-        title: 'Rent payment reminder',
-        duration: const Duration(seconds: 32),
-        date: DateTime.now().subtract(const Duration(days: 1)),
-        isSynced: false,
-      ),
+    if (savedJson == null || savedJson.isEmpty) {
+      return;
+    }
 
-      VoiceNote(
-        id: 'vn_003',
-        title: 'Freelance project income',
-        duration: const Duration(seconds: 8),
-        date: DateTime.now().subtract(const Duration(days: 3)),
-        isSynced: true,
-      ),
-    ]);
+    final List<dynamic> decoded = jsonDecode(savedJson) as List<dynamic>;
+
+    setState(() {
+      _voiceNotes.clear();
+      _voiceNotes.addAll(
+        decoded
+            .map((entry) => VoiceNote.fromMap(entry as Map<String, dynamic>))
+            .toList(),
+      );
+    });
+  }
+
+  Future<void> _saveVoiceNotes() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encoded = jsonEncode(
+      _voiceNotes.map((note) => note.toMap()).toList(),
+    );
+    await prefs.setString('saved_voice_notes', encoded);
   }
 
   // =============================================
@@ -721,6 +723,10 @@ class _VoiceRecordingScreenState extends State<VoiceRecordingScreen>
   }
 
   void _togglePause() {
+    if (!_isRecording) {
+      return;
+    }
+
     setState(() {
       _isPaused = !_isPaused;
     });
@@ -745,6 +751,7 @@ class _VoiceRecordingScreenState extends State<VoiceRecordingScreen>
       duration: _recordingDuration,
       date: DateTime.now(),
       isSynced: false,
+      filePath: '',
     );
 
     setState(() {
@@ -753,6 +760,8 @@ class _VoiceRecordingScreenState extends State<VoiceRecordingScreen>
       _voiceNotes.insert(0, note);
       _recordingDuration = Duration.zero;
     });
+
+    _saveVoiceNotes();
   }
 
   void _togglePlayback(int index) {
@@ -802,12 +811,14 @@ class _VoiceRecordingScreenState extends State<VoiceRecordingScreen>
           ),
 
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
 
               setState(() {
                 _voiceNotes.removeWhere((n) => n.id == id);
               });
+
+              await _saveVoiceNotes();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.error,
@@ -848,6 +859,7 @@ class VoiceNote {
   final Duration duration;
   final DateTime date;
   final bool isSynced;
+  final String filePath;
 
   const VoiceNote({
     required this.id,
@@ -855,7 +867,35 @@ class VoiceNote {
     required this.duration,
     required this.date,
     this.isSynced = false,
+    required this.filePath,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'duration': duration.inSeconds,
+      'date': date.toIso8601String(),
+      'isSynced': isSynced,
+      'filePath': filePath,
+    };
+  }
+
+  factory VoiceNote.fromMap(Map<String, dynamic> map) {
+    return VoiceNote(
+      id: map['id']?.toString() ?? '',
+      title: map['title']?.toString() ?? '',
+      duration: Duration(
+        seconds: map['duration'] is int
+            ? map['duration'] as int
+            : int.tryParse(map['duration']?.toString() ?? '0') ?? 0,
+      ),
+      date: DateTime.tryParse(map['date']?.toString() ?? '') ?? DateTime.now(),
+      isSynced:
+          map['isSynced'] == true || map['isSynced']?.toString() == 'true',
+      filePath: map['filePath']?.toString() ?? '',
+    );
+  }
 }
 
 // =============================================

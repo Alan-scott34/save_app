@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import "app_theme.dart";
 import "transaction_service.dart";
 import "goal_service.dart";
+import "auth_service.dart";
 import "app_models.dart";
 import "constants.dart";
 
@@ -83,6 +84,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                   const SizedBox(height: AppSpacing.lg),
 
+                  // --- Actions rapides : photo et audio ---
+                  _buildQuickActions(),
+
+                  const SizedBox(height: AppSpacing.lg),
+
                   // --- Section Objectifs actifs ---
                   _buildActiveGoalsSection(),
 
@@ -128,29 +134,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
         expandedTitleScale: 1.0,
-        title: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.end,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Good Morning! 👋',
-              style: AppTypography.bodySmall.copyWith(
-                color: AppColors.textSecondary,
-                height: 1.0,
-              ),
-            ),
-            const Text(
-              'John Doe',
-              style: TextStyle(
-                fontFamily: 'Poppins',
-                fontSize: 18,
-                height: 1.0,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-              ),
-            ),
-          ],
+        title: Consumer<AuthService>(
+          builder: (context, authService, child) {
+            final fullName = authService.user?.fullName ?? 'John Doe';
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Good Morning! 👋',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
+                    height: 1.0,
+                  ),
+                ),
+                Text(
+                  fullName,
+                  style: const TextStyle(
+                    fontFamily: 'Poppins',
+                    fontSize: 18,
+                    height: 1.0,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
       actions: [
@@ -245,6 +256,85 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         );
       },
+    );
+  }
+
+  /// ============================================
+  /// WIDGET : Actions rapides (photo / audio)
+  /// ============================================
+  Widget _buildQuickActions() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildActionCard(
+              title: 'Add Receipt',
+              subtitle: 'Capture or import a receipt',
+              icon: LucideIcons.camera,
+              onTap: () => GoRouter.of(context).go('/image-capture'),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: _buildActionCard(
+              title: 'Voice Note',
+              subtitle: 'Record audio for later',
+              icon: LucideIcons.mic,
+              onTap: () => GoRouter.of(context).go('/voice-recording'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionCard({
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+              ),
+              child: Center(
+                child: Icon(icon, color: AppColors.primary, size: 22),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              title,
+              style: AppTypography.titleMedium.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              subtitle,
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -429,7 +519,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   const Text('Active Goals', style: AppTypography.titleLarge),
                   TextButton(
-                    onPressed: () => context.go('/goals'),
+                    onPressed: () => context.push('/goals'),
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -609,7 +699,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(height: AppSpacing.md),
             OutlinedButton(
-              onPressed: () => context.go('/goals/add'),
+              onPressed: () => context.push('/goals/add'),
               child: const Text('Create Goal'),
             ),
           ],
@@ -813,7 +903,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               gradient: AppColors.incomeGradient,
               onTap: () {
                 Navigator.pop(context);
-                context.go('/income/add');
+                context.push('/income/add');
               },
             ),
 
@@ -827,7 +917,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               gradient: AppColors.expenseGradient,
               onTap: () {
                 Navigator.pop(context);
-                context.go('/expense/add');
+                context.push('/expense/add');
               },
             ),
 
@@ -841,7 +931,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               gradient: AppColors.savingsGradient,
               onTap: () {
                 Navigator.pop(context);
-                context.go('/voice-recording');
+                context.push('/voice-recording');
               },
             ),
 

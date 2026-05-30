@@ -99,7 +99,7 @@ class _IncomeFormScreenState extends State<IncomeFormScreen> {
           behavior: SnackBarBehavior.floating,
         ),
       );
-      context.go('/income');
+      context.pop();
     }
   }
 
@@ -365,13 +365,13 @@ class _IncomeFormScreenState extends State<IncomeFormScreen> {
             _buildOptionChip(
               icon: LucideIcons.camera,
               label: 'Photo',
-              onTap: () => context.go('/image-capture'),
+              onTap: () => context.push('/image-capture'),
             ),
             const SizedBox(width: AppSpacing.sm),
             _buildOptionChip(
               icon: LucideIcons.mic,
               label: 'Voice Note',
-              onTap: () => context.go('/voice-recording'),
+              onTap: () => context.push('/voice-recording'),
             ),
           ],
         ),

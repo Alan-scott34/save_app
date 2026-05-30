@@ -73,6 +73,7 @@ class _LoginScreenState extends State<LoginScreen>
     await authService.login(
       _emailController.text.trim(),
       _passwordController.text,
+      rememberMe: _rememberMe,
     );
 
     if (!mounted) return;
@@ -210,21 +211,14 @@ class _LoginScreenState extends State<LoginScreen>
             borderRadius: BorderRadius.circular(16),
           ),
           child: const Center(
-            child: Icon(
-              LucideIcons.piggyBank,
-              size: 28,
-              color: Colors.white,
-            ),
+            child: Icon(LucideIcons.piggyBank, size: 28, color: Colors.white),
           ),
         ),
 
         const SizedBox(height: AppSpacing.lg),
 
         // Titre
-        const Text(
-          'Welcome Back!',
-          style: AppTypography.headlineLarge,
-        ),
+        const Text('Welcome Back!', style: AppTypography.headlineLarge),
 
         const SizedBox(height: AppSpacing.sm),
 
@@ -261,7 +255,11 @@ class _LoginScreenState extends State<LoginScreen>
             hintText: 'Enter your email',
             prefixIcon: Padding(
               padding: EdgeInsets.all(14.0),
-              child: Icon(LucideIcons.mail, size: 20, color: AppColors.textTertiary),
+              child: Icon(
+                LucideIcons.mail,
+                size: 20,
+                color: AppColors.textTertiary,
+              ),
             ),
           ),
           validator: (value) {
@@ -301,7 +299,11 @@ class _LoginScreenState extends State<LoginScreen>
             hintText: 'Enter your password',
             prefixIcon: const Padding(
               padding: EdgeInsets.all(14.0),
-              child: Icon(LucideIcons.lock, size: 20, color: AppColors.textTertiary),
+              child: Icon(
+                LucideIcons.lock,
+                size: 20,
+                color: AppColors.textTertiary,
+              ),
             ),
             suffixIcon: Padding(
               padding: const EdgeInsets.all(14.0),
@@ -383,9 +385,7 @@ class _LoginScreenState extends State<LoginScreen>
           ),
           child: Text(
             'Forgot Password?',
-            style: AppTypography.labelMedium.copyWith(
-              color: AppColors.primary,
-            ),
+            style: AppTypography.labelMedium.copyWith(color: AppColors.primary),
           ),
         ),
       ],

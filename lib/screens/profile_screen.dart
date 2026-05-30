@@ -69,8 +69,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       builder: (context, authService, child) {
         final user = authService.user;
 
-        final String fullName = user?['fullName']?.toString() ?? 'John Doe';
-        final String email = user?['email']?.toString() ?? 'john@example.com';
+        final String fullName = user?.fullName ?? 'John Doe';
+        final String email = user?.email ?? 'john@example.com';
 
         return Container(
           width: double.infinity,
@@ -197,7 +197,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      'Member since 2024',
+                      'Member since ${user?.createdAt.year ?? DateTime.now().year}',
                       style: AppTypography.bodySmall.copyWith(
                         color: Colors.white70,
                         fontWeight: FontWeight.w500,

@@ -93,7 +93,7 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
           behavior: SnackBarBehavior.floating,
         ),
       );
-      context.go('/goals');
+      context.pop();
     }
   }
 

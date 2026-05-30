@@ -1,5 +1,12 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'app_theme.dart';
 
 /// ============================================
@@ -35,55 +42,40 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
   double? _longitude;
   bool _isLocating = false;
 
-  // --- Images capturées (données mock) ---
-  final List<CapturedImage> _capturedImages = [];
+  // --- Images capturées et enregistrées ---
+  List<CapturedImage> _capturedImages = [];
 
-  // --- État de la caméra ---
+  // --- Gestion de l'image ---
   bool _isCameraActive = false;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
-    _loadMockImages();
+    _loadSavedImages();
     _getCurrentLocation();
   }
 
-  /// Charge des images mock pour la démonstration
-  void _loadMockImages() {
-    _capturedImages.addAll([
-      CapturedImage(
-        id: 'img_001',
-        title: 'Supermarket receipt',
-        date: DateTime.now().subtract(const Duration(hours: 3)),
-        latitude: 4.0511,
-        longitude: 9.7677,
-        locationTag: 'Douala, Cameroon',
-      ),
-      CapturedImage(
-        id: 'img_002',
-        title: 'Restaurant bill',
-        date: DateTime.now().subtract(const Duration(days: 1)),
-        latitude: 3.8480,
-        longitude: 11.5021,
-        locationTag: 'Yaoundé, Cameroon',
-      ),
-      CapturedImage(
-        id: 'img_003',
-        title: 'Pharmacy receipt',
-        date: DateTime.now().subtract(const Duration(days: 2)),
-        latitude: null,
-        longitude: null,
-        locationTag: null,
-      ),
-      CapturedImage(
-        id: 'img_004',
-        title: 'Gas station receipt',
-        date: DateTime.now().subtract(const Duration(days: 5)),
-        latitude: 4.0511,
-        longitude: 9.7677,
-        locationTag: 'Douala, Cameroon',
-      ),
-    ]);
+  /// Charge les images capturées sauvegardées localement.
+  Future<void> _loadSavedImages() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString('saved_images');
+
+    if (saved != null) {
+      final data = jsonDecode(saved) as List<dynamic>;
+      _capturedImages = data
+          .map((e) => CapturedImage.fromMap(e as Map<String, dynamic>))
+          .where((image) => File(image.filePath).existsSync())
+          .toList();
+    }
+
+    setState(() {});
+  }
+
+  Future<void> _saveImages() async {
+    final prefs = await SharedPreferences.getInstance();
+    final encoded = jsonEncode(_capturedImages.map((e) => e.toMap()).toList());
+    await prefs.setString('saved_images', encoded);
   }
 
   /// Récupère la position GPS actuelle (stub)
@@ -187,43 +179,53 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          // Placeholder de la caméra
-          Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Icône caméra
-              Container(
-                width: 72,
-                height: 72,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.08),
-                  shape: BoxShape.circle,
-                ),
-                child: const Center(
-                  child: Icon(
-                    LucideIcons.camera,
-                    size: 32,
-                    color: Colors.white38,
+          // Preview of the latest captured image or camera placeholder.
+          _capturedImages.isNotEmpty
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+                  child: Image.file(
+                    File(_capturedImages.first.filePath),
+                    width: double.infinity,
+                    height: double.infinity,
+                    fit: BoxFit.cover,
                   ),
-                ),
-              ),
+                )
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 72,
+                      height: 72,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(
+                        child: Icon(
+                          LucideIcons.camera,
+                          size: 32,
+                          color: Colors.white38,
+                        ),
+                      ),
+                    ),
 
-              const SizedBox(height: AppSpacing.md),
+                    const SizedBox(height: AppSpacing.md),
 
-              // Texte d'instruction
-              Text(
-                'Camera Preview',
-                style: AppTypography.titleMedium.copyWith(
-                  color: Colors.white38,
+                    Text(
+                      'Camera Preview',
+                      style: AppTypography.titleMedium.copyWith(
+                        color: Colors.white38,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      'Position your receipt within the frame',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: Colors.white24,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                'Position your receipt within the frame',
-                style: AppTypography.bodySmall.copyWith(color: Colors.white24),
-              ),
-            ],
-          ),
 
           // Cadre de scan (overlay)
           Positioned.fill(
@@ -591,36 +593,49 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
             flex: 3,
             child: Stack(
               children: [
-                // Placeholder de l'image
-                Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(AppSpacing.radiusMd),
-                    ),
+                // Preview the saved image when available.
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(AppSpacing.radiusMd),
                   ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        LucideIcons.fileImage,
-                        size: 32,
-                        color: AppColors.textTertiary.withValues(alpha: 0.5),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        image.title,
-                        style: AppTypography.bodySmall.copyWith(
-                          color: AppColors.textTertiary,
+                  child:
+                      image.filePath.isNotEmpty &&
+                          File(image.filePath).existsSync()
+                      ? Image.file(
+                          File(image.filePath),
+                          width: double.infinity,
+                          height: double.infinity,
+                          fit: BoxFit.cover,
+                        )
+                      : Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F5F9),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                LucideIcons.fileImage,
+                                size: 32,
+                                color: AppColors.textTertiary.withValues(
+                                  alpha: 0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                image.title,
+                                style: AppTypography.bodySmall.copyWith(
+                                  color: AppColors.textTertiary,
+                                ),
+                                textAlign: TextAlign.center,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                strutStyle: const StrutStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
                         ),
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        strutStyle: const StrutStyle(fontSize: 12),
-                      ),
-                    ],
-                  ),
                 ),
 
                 // Tag de localisation (si disponible)
@@ -789,87 +804,95 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
   // ACTIONS
   // =============================================
 
-  /// Capture une image avec la caméra (stub)
+  /// Capture une image avec la caméra.
   Future<void> _captureImage() async {
-    // Simuler la capture d'une image
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Capturing receipt...'),
-        backgroundColor: AppColors.primary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 80,
+      );
+      if (image == null) return;
+
+      final directory = await getApplicationDocumentsDirectory();
+      final fileName = 'receipt_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final savedFile = await File(
+        image.path,
+      ).copy('${directory.path}/$fileName');
+
+      final newImage = CapturedImage(
+        id: 'img_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'Receipt ${_capturedImages.length + 1}',
+        date: DateTime.now(),
+        latitude: _latitude,
+        longitude: _longitude,
+        locationTag: _latitude != null ? 'Current Location' : null,
+        filePath: savedFile.path,
+      );
+
+      setState(() {
+        _capturedImages.insert(0, newImage);
+      });
+      await _saveImages();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unable to capture image: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
         ),
-        duration: const Duration(seconds: 1),
-      ),
-    );
-
-    // Simuler un délai de capture
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Créer une nouvelle image capturée
-    final newImage = CapturedImage(
-      id: 'img_${DateTime.now().millisecondsSinceEpoch}',
-      title: 'Receipt ${_capturedImages.length + 1}',
-      date: DateTime.now(),
-      latitude: _latitude,
-      longitude: _longitude,
-      locationTag: _latitude != null ? 'Current Location' : null,
-    );
-
-    setState(() {
-      _capturedImages.insert(0, newImage);
-    });
-
-    // TODO: Implémenter avec le package `image_picker`
-    // final XFile? image = await ImagePicker().pickImage(
-    //   source: ImageSource.camera,
-    //   maxWidth: 1920,
-    //   maxHeight: 1080,
-    // );
+      );
+    }
   }
 
-  /// Choisit une image depuis la galerie (stub)
+  /// Choisit une image depuis la galerie.
   Future<void> _pickFromGallery() async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('Opening gallery...'),
-        backgroundColor: AppColors.info,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        maxHeight: 1080,
+        imageQuality: 80,
+      );
+      if (image == null) return;
+
+      final directory = await getApplicationDocumentsDirectory();
+      final fileName = 'receipt_${DateTime.now().millisecondsSinceEpoch}.jpg';
+      final savedFile = await File(
+        image.path,
+      ).copy('${directory.path}/$fileName');
+
+      final newImage = CapturedImage(
+        id: 'img_${DateTime.now().millisecondsSinceEpoch}',
+        title: 'Gallery image ${_capturedImages.length + 1}',
+        date: DateTime.now(),
+        latitude: _latitude,
+        longitude: _longitude,
+        locationTag: null,
+        filePath: savedFile.path,
+      );
+
+      setState(() {
+        _capturedImages.insert(0, newImage);
+      });
+      await _saveImages();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Unable to select image: $e'),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
         ),
-        duration: const Duration(seconds: 1),
-      ),
-    );
-
-    // Simuler un délai de sélection
-    await Future.delayed(const Duration(seconds: 1));
-
-    final newImage = CapturedImage(
-      id: 'img_${DateTime.now().millisecondsSinceEpoch}',
-      title: 'Gallery image ${_capturedImages.length + 1}',
-      date: DateTime.now(),
-      latitude: _latitude,
-      longitude: _longitude,
-      locationTag: null,
-    );
-
-    setState(() {
-      _capturedImages.insert(0, newImage);
-    });
-
-    // TODO: Implémenter avec le package `image_picker`
-    // final XFile? image = await ImagePicker().pickImage(
-    //   source: ImageSource.gallery,
-    // );
+      );
+    }
   }
 
-  /// Attache une image à une transaction
+  /// Attache une image à une transaction.
   void _attachToTransaction(CapturedImage image) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Attaching "${image.title}" to transaction...'),
+        content: Text('Image "${image.title}" saved for attachment.'),
         backgroundColor: AppColors.income,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -877,16 +900,33 @@ class _ImageCaptureScreenState extends State<ImageCaptureScreen> {
         ),
       ),
     );
-
-    // TODO: Navigation vers /expense/add ou /income/add
-    // avec l'image attachée
   }
 
-  /// Supprime une image capturée
-  void _deleteImage(String id) {
+  /// Supprime une image capturée.
+  Future<void> _deleteImage(String id) async {
+    final image = _capturedImages.firstWhere(
+      (img) => img.id == id,
+      orElse: () => CapturedImage(
+        id: id,
+        title: '',
+        date: DateTime.now(),
+        latitude: null,
+        longitude: null,
+        locationTag: null,
+        filePath: '',
+      ),
+    );
+    if (image.filePath.isNotEmpty) {
+      final file = File(image.filePath);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    }
+
     setState(() {
       _capturedImages.removeWhere((img) => img.id == id);
     });
+    await _saveImages();
   }
 
   // =============================================
@@ -913,6 +953,7 @@ class CapturedImage {
   final double? latitude;
   final double? longitude;
   final String? locationTag;
+  final String filePath;
 
   const CapturedImage({
     required this.id,
@@ -921,7 +962,36 @@ class CapturedImage {
     this.latitude,
     this.longitude,
     this.locationTag,
+    required this.filePath,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'date': date.toIso8601String(),
+      'latitude': latitude,
+      'longitude': longitude,
+      'locationTag': locationTag,
+      'filePath': filePath,
+    };
+  }
+
+  factory CapturedImage.fromMap(Map<String, dynamic> map) {
+    return CapturedImage(
+      id: map['id']?.toString() ?? '',
+      title: map['title']?.toString() ?? '',
+      date: DateTime.tryParse(map['date']?.toString() ?? '') ?? DateTime.now(),
+      latitude: map['latitude'] is num
+          ? (map['latitude'] as num).toDouble()
+          : null,
+      longitude: map['longitude'] is num
+          ? (map['longitude'] as num).toDouble()
+          : null,
+      locationTag: map['locationTag']?.toString(),
+      filePath: map['filePath']?.toString() ?? '',
+    );
+  }
 }
 
 // =============================================

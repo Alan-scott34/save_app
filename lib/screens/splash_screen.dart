@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
+import 'auth_service.dart';
 import "constants.dart";
 
 /// ============================================
@@ -118,9 +120,14 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Étape 4 : Rediriger vers Login ou Dashboard
     if (mounted) {
-      // TODO: Vérifier l'état d'auth avec AuthService
-      // Pour l'instant, on va toujours vers Login
-      context.go('/login');
+      final authService = Provider.of<AuthService>(context, listen: false);
+      await authService.loadFromStorage();
+
+      if (authService.isLoggedIn) {
+        context.go('/');
+      } else {
+        context.go('/login');
+      }
     }
   }
 

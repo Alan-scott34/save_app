@@ -87,7 +87,7 @@ class _GoalsListScreenState extends State<GoalsListScreen>
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => context.go('/goals/add'),
+        onPressed: () => context.push('/goals/add'),
         backgroundColor: AppColors.primary,
         child: const Icon(LucideIcons.plus, color: Colors.white),
       ),
@@ -129,7 +129,7 @@ class _GoalsListScreenState extends State<GoalsListScreen>
 
   Widget _buildGoalCard(GoalModel goal) {
     return GestureDetector(
-      onTap: () => context.go('/goals/${goal.id}'),
+      onTap: () => context.push('/goals/${goal.id}'),
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(

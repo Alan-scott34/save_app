@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import "app_models.dart";
-import "constants.dart";
 
 /// ============================================
 /// TRANSACTION SERVICE — Service de gestion des transactions
@@ -39,10 +38,11 @@ class TransactionService extends ChangeNotifier {
     _isLoading = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(seconds: 1));
+    await Future.delayed(const Duration(milliseconds: 500));
 
-    _incomes = _generateMockIncomes();
-    _expenses = _generateMockExpenses();
+    // Start with empty lists
+    _incomes = [];
+    _expenses = [];
 
     _isLoading = false;
     notifyListeners();
@@ -95,109 +95,36 @@ class TransactionService extends ChangeNotifier {
     final all = <TransactionModel>[];
 
     for (final income in _incomes.take(5)) {
-      all.add(TransactionModel(
-        id: income.id ?? '',
-        type: TransactionType.income,
-        amount: income.amount,
-        categoryName: income.category.label,
-        categoryIcon: income.category.icon,
-        categoryColor: income.category.color,
-        date: income.date,
-        note: income.note,
-      ));
+      all.add(
+        TransactionModel(
+          id: income.id ?? '',
+          type: TransactionType.income,
+          amount: income.amount,
+          categoryName: income.category.label,
+          categoryIcon: income.category.icon,
+          categoryColor: income.category.color,
+          date: income.date,
+          note: income.note,
+        ),
+      );
     }
 
     for (final expense in _expenses.take(5)) {
-      all.add(TransactionModel(
-        id: expense.id ?? '',
-        type: TransactionType.expense,
-        amount: expense.amount,
-        categoryName: expense.category.label,
-        categoryIcon: expense.category.icon,
-        categoryColor: expense.category.color,
-        date: expense.date,
-        note: expense.note,
-      ));
+      all.add(
+        TransactionModel(
+          id: expense.id ?? '',
+          type: TransactionType.expense,
+          amount: expense.amount,
+          categoryName: expense.category.label,
+          categoryIcon: expense.category.icon,
+          categoryColor: expense.category.color,
+          date: expense.date,
+          note: expense.note,
+        ),
+      );
     }
 
     all.sort((a, b) => b.date.compareTo(a.date));
     return all.take(10).toList();
-  }
-
-  // --- Données mock ---
-  List<IncomeModel> _generateMockIncomes() {
-    final now = DateTime.now();
-    return [
-      IncomeModel(
-        id: 'inc_001',
-        amount: 250000,
-        category: IncomeCategory.salary,
-        date: DateTime(now.year, now.month, 1),
-        note: 'Monthly salary',
-        createdAt: now,
-      ),
-      IncomeModel(
-        id: 'inc_002',
-        amount: 50000,
-        category: IncomeCategory.freelance,
-        date: DateTime(now.year, now.month, 5),
-        note: 'Web design project',
-        createdAt: now,
-      ),
-      IncomeModel(
-        id: 'inc_003',
-        amount: 15000,
-        category: IncomeCategory.investment,
-        date: DateTime(now.year, now.month, 10),
-        note: 'Dividend payment',
-        createdAt: now,
-      ),
-    ];
-  }
-
-  List<ExpenseModel> _generateMockExpenses() {
-    final now = DateTime.now();
-    return [
-      ExpenseModel(
-        id: 'exp_001',
-        amount: 60000,
-        category: ExpenseCategory.housing,
-        date: DateTime(now.year, now.month, 1),
-        note: 'Monthly rent',
-        createdAt: now,
-      ),
-      ExpenseModel(
-        id: 'exp_002',
-        amount: 25000,
-        category: ExpenseCategory.food,
-        date: DateTime(now.year, now.month, 3),
-        note: 'Groceries',
-        createdAt: now,
-      ),
-      ExpenseModel(
-        id: 'exp_003',
-        amount: 5000,
-        category: ExpenseCategory.transport,
-        date: DateTime(now.year, now.month, 7),
-        note: 'Fuel',
-        createdAt: now,
-      ),
-      ExpenseModel(
-        id: 'exp_004',
-        amount: 10000,
-        category: ExpenseCategory.healthcare,
-        date: DateTime(now.year, now.month, 12),
-        note: 'Doctor visit',
-        createdAt: now,
-      ),
-      ExpenseModel(
-        id: 'exp_005',
-        amount: 8000,
-        category: ExpenseCategory.entertainment,
-        date: DateTime(now.year, now.month, 15),
-        note: 'Movie night',
-        createdAt: now,
-      ),
-    ];
   }
 }

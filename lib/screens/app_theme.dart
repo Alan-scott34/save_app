@@ -11,45 +11,45 @@ import 'package:flutter/material.dart';
 /// ============================================
 
 class AppColors {
-  // Primary colors
-  static const Color primary = Color(0xFF10B981);
-  static const Color primaryLight = Color(0xFF34D399);
-  static const Color primaryDark = Color(0xFF059669);
+  // Primary colors (dark theme)
+  static const Color primary = Color(0xFF06B6D4); // Cyan
+  static const Color primaryLight = Color(0xFF22D3EE);
+  static const Color primaryDark = Color(0xFF0891B2);
 
   // Secondary colors
-  static const Color secondary = Color(0xFF3B82F6);
-  static const Color secondaryLight = Color(0xFF60A5FA);
-  static const Color secondaryDark = Color(0xFF2563EB);
+  static const Color secondary = Color(0xFF8B5CF6); // Purple
+  static const Color secondaryLight = Color(0xFFA78BFA);
+  static const Color secondaryDark = Color(0xFF7C3AED);
 
   // Semantic colors
-  static const Color income = Color(0xFF10B981);
-  static const Color expense = Color(0xFFEF4444);
-  static const Color savings = Color(0xFF8B5CF6);
-  static const Color warning = Color(0xFFF59E0B);
-  static const Color info = Color(0xFF3B82F6);
+  static const Color income = Color(0xFF10B981); // Emerald (green)
+  static const Color expense = Color(0xFFF87171); // Red (brighter for dark)
+  static const Color savings = Color(0xFF8B5CF6); // Purple
+  static const Color warning = Color(0xFFFBBF24); // Amber
+  static const Color info = Color(0xFF06B6D4); // Cyan
 
-  // Surface colors
-  static const Color background = Color(0xFFF8FAFC);
-  static const Color surface = Color(0xFFFFFFFF);
-  static const Color surfaceVariant = Color(0xFFF1F5F9);
+  // Surface colors (dark theme)
+  static const Color background = Color(0xFF0F172A); // Very dark blue
+  static const Color surface = Color(0xFF1E293B); // Dark blue-gray
+  static const Color surfaceVariant = Color(0xFF334155); // Medium dark gray
 
-  // Text colors
-  static const Color textPrimary = Color(0xFF1E293B);
-  static const Color textSecondary = Color(0xFF64748B);
-  static const Color textTertiary = Color(0xFF94A3B8);
-  static const Color textOnPrimary = Color(0xFFFFFFFF);
+  // Text colors (for dark theme)
+  static const Color textPrimary = Color(0xFFF1F5F9); // Almost white
+  static const Color textSecondary = Color(0xFFCBD5E1); // Light gray
+  static const Color textTertiary = Color(0xFF94A3B8); // Medium gray
+  static const Color textOnPrimary = Color(0xFF0F172A);
 
   // Borders
-  static const Color border = Color(0xFFE2E8F0);
-  static const Color borderFocus = Color(0xFF10B981);
+  static const Color border = Color(0xFF334155);
+  static const Color borderFocus = Color(0xFF06B6D4);
 
   // Status colors
   static const Color success = Color(0xFF10B981);
-  static const Color error = Color(0xFFEF4444);
+  static const Color error = Color(0xFFF87171);
 
-  // Gradients
+  // Gradients (updated for dark theme)
   static const LinearGradient primaryGradient = LinearGradient(
-    colors: [primary, primaryLight],
+    colors: [Color(0xFF06B6D4), Color(0xFF22D3EE)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -67,7 +67,7 @@ class AppColors {
   );
 
   static const LinearGradient expenseGradient = LinearGradient(
-    colors: [Color(0xFFEF4444), Color(0xFFF87171)],
+    colors: [Color(0xFFF87171), Color(0xFFFCA5A5)],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
@@ -237,10 +237,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          side: const BorderSide(
-            color: AppColors.border,
-            width: 1,
-          ),
+          side: const BorderSide(color: AppColors.border, width: 1),
         ),
         margin: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
@@ -266,10 +263,7 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.primary,
-          side: const BorderSide(
-            color: AppColors.primary,
-            width: 1.5,
-          ),
+          side: const BorderSide(color: AppColors.primary, width: 1.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           ),
@@ -277,9 +271,7 @@ class AppTheme {
       ),
 
       textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: AppColors.primary,
-        ),
+        style: TextButton.styleFrom(foregroundColor: AppColors.primary),
       ),
 
       inputDecorationTheme: InputDecorationTheme(
@@ -295,17 +287,11 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          borderSide: const BorderSide(
-            color: AppColors.primary,
-            width: 1.5,
-          ),
+          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          borderSide: const BorderSide(
-            color: AppColors.error,
-            width: 1.5,
-          ),
+          borderSide: const BorderSide(color: AppColors.error, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
@@ -375,10 +361,7 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          side: const BorderSide(
-            color: Color(0xFF334155),
-            width: 1,
-          ),
+          side: const BorderSide(color: Color(0xFF334155), width: 1),
         ),
         margin: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,

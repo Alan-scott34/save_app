@@ -1,0 +1,8 @@
+type Saving @model {
+  id: ID!
+  title: String!
+  amount: Float!
+  date: AWSDateTime!
+  category: String
+  note: String
+}
