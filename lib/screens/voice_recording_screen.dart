@@ -763,6 +763,7 @@ class _VoiceRecordingScreenState extends State<VoiceRecordingScreen>
 
     _saveVoiceNotes();
   }
+  
 
   void _togglePlayback(int index) {
     setState(() {

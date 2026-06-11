@@ -1,21 +1,43 @@
-<<<<<<< HEAD
 # save_app
 
-A new Flutter project.
+A Flutter application repository.
 
-## Getting Started
+## Docker containerization
 
-This project is a starting point for a Flutter application.
+This project includes a Docker setup to build and serve the Flutter web version, so anyone can clone the repository and run it without installing Flutter locally.
 
-A few resources to get you started if this is your first Flutter project:
+### Build the Docker image
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+```bash
+cd C:\Users\x\save_app
+docker build -t save_app_web .
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-=======
-# save_app
->>>>>>> 84e3fa2c11abbe421c802927aad9ccd83c037371
+### Run the app in Docker
+
+```bash
+docker run --rm -p 8080:80 save_app_web
+```
+
+Then open:
+
+```text
+http://localhost:8080
+```
+
+### Alternative with Docker Compose
+
+```bash
+docker compose up --build
+```
+
+### Notes
+
+- The Docker image builds the Flutter web version and serves it with nginx.
+- For mobile or desktop deployment, a local Flutter environment is still required.
+- If you want to update the container after changes, rebuild with:
+
+```bash
+docker compose up --build
+```
+
