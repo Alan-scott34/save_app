@@ -6,6 +6,7 @@ import "app_theme.dart";
 import "transaction_service.dart";
 import "app_models.dart";
 import "constants.dart";
+import "speed_dial_fab.dart";
 
 /// ============================================
 /// INCOME FORM SCREEN — Formulaire d'ajout/modification de revenu
@@ -107,6 +108,23 @@ class _IncomeFormScreenState extends State<IncomeFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      floatingActionButton: SpeedDialFAB(
+        mainIcon: LucideIcons.paperclip,
+        actions: [
+          SpeedDialAction(
+            icon: LucideIcons.camera,
+            label: 'Take Photo',
+            color: AppColors.success,
+            onTap: () => context.push('/image-capture'),
+          ),
+          SpeedDialAction(
+            icon: LucideIcons.mic,
+            label: 'Record Voice',
+            color: AppColors.primary,
+            onTap: () => context.push('/voice-recording'),
+          ),
+        ],
+      ),
       appBar: AppBar(
         title: Text(_isEditing ? 'Edit Income' : 'Add Income'),
         actions: [
@@ -148,15 +166,12 @@ class _IncomeFormScreenState extends State<IncomeFormScreen> {
               // --- Note ---
               _buildNoteField(),
 
-              const SizedBox(height: AppSpacing.xl),
-
-              // --- Options supplémentaires ---
-              _buildExtraOptions(),
-
               const SizedBox(height: AppSpacing.xxl),
 
               // --- Bouton Sauvegarder ---
               _buildSaveButton(),
+
+              const SizedBox(height: 100), // Espace pour le FAB
             ],
           ),
         ),

@@ -41,6 +41,7 @@ dependencies:
   amplify_flutter: ^2.4.0
   amplify_datastore: ^2.4.0
   shared_preferences: ^2.1.5
+  http: ^1.2.0
   image_picker: ^0.8.8+5
   path_provider: ^2.0.15
 

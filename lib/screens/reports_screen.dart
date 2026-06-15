@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -57,7 +58,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         title: const Text('Reports'),
         leading: IconButton(
           icon: const Icon(LucideIcons.arrowLeft, size: 22),
-          onPressed: () => Navigator.of(context).maybePop(),
+          onPressed: () => context.canPop() ? context.pop() : context.go('/'),
         ),
         actions: [
           // Bouton de rafraîchissement

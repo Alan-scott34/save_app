@@ -6,6 +6,7 @@ import "app_theme.dart";
 import "goal_service.dart";
 import "app_models.dart";
 import "constants.dart";
+import "achievement_service.dart";
 
 /// ============================================
 /// GOAL DETAIL SCREEN — Détail d'un objectif d'épargne
@@ -253,21 +254,46 @@ class _GoalDetailScreenState extends State<GoalDetailScreen> {
               ),
               const SizedBox(width: AppSpacing.sm),
               ElevatedButton(
-                onPressed: () {
+                onPressed: () async {
                   final amount = double.tryParse(_contributionController.text);
                   if (amount != null && amount > 0 && goal.id != null) {
-                    Provider.of<GoalService>(
+                    final bool isNowAchieved = (goal.currentAmount + amount) >= goal.targetAmount && !goal.isAchieved;
+
+                    await Provider.of<GoalService>(
                       context,
                       listen: false,
                     ).addToGoal(goal.id!, amount);
+                    
                     _contributionController.clear();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Contribution added!'),
-                        backgroundColor: AppColors.success,
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    );
+
+                    if (mounted) {
+                      final messenger = ScaffoldMessenger.of(context);
+                      if (isNowAchieved) {
+                        await Provider.of<AchievementService>(context, listen: false).addAutoAchievement(
+                          title: 'Goal Reached: ${goal.title}',
+                          description: 'You successfully saved ${goal.targetAmount} FCFA!',
+                          type: AchievementType.goalReached,
+                          targetAmount: goal.targetAmount,
+                          currentAmount: goal.targetAmount,
+                          relatedGoalId: goal.id,
+                        );
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('🎉 Achievement Unlocked: Goal Reached!'),
+                            backgroundColor: AppColors.savings,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      } else {
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('Contribution added!'),
+                            backgroundColor: AppColors.success,
+                            behavior: SnackBarBehavior.floating,
+                          ),
+                        );
+                      }
+                    }
                   }
                 },
                 style: ElevatedButton.styleFrom(

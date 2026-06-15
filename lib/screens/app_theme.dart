@@ -28,19 +28,31 @@ class AppColors {
   static const Color warning = Color(0xFFFBBF24); // Amber
   static const Color info = Color(0xFF06B6D4); // Cyan
 
-  // Surface colors (dark theme)
-  static const Color background = Color(0xFF0F172A); // Very dark blue
-  static const Color surface = Color(0xFF1E293B); // Dark blue-gray
-  static const Color surfaceVariant = Color(0xFF334155); // Medium dark gray
+  // Surface colors (light theme)
+  static const Color background = Color(0xFFF8FAFC); // Very light gray
+  static const Color surface = Color(0xFFFFFFFF); // White
+  static const Color surfaceVariant = Color(0xFFF1F5F9); // Light gray
+  
+  // Dark Surface colors
+  static const Color darkBackground = Color(0xFF0F172A);
+  static const Color darkSurface = Color(0xFF1E293B);
+  static const Color darkSurfaceVariant = Color(0xFF334155);
 
-  // Text colors (for dark theme)
-  static const Color textPrimary = Color(0xFFF1F5F9); // Almost white
-  static const Color textSecondary = Color(0xFFCBD5E1); // Light gray
+  // Text colors (light theme)
+  static const Color textPrimary = Color(0xFF0F172A); // Almost black
+  static const Color textSecondary = Color(0xFF475569); // Dark gray
   static const Color textTertiary = Color(0xFF94A3B8); // Medium gray
-  static const Color textOnPrimary = Color(0xFF0F172A);
+  static const Color textOnPrimary = Color(0xFFFFFFFF); // White
+
+  // Dark Text colors
+  static const Color darkTextPrimary = Color(0xFFF1F5F9); 
+  static const Color darkTextSecondary = Color(0xFFCBD5E1);
+  static const Color darkTextTertiary = Color(0xFF94A3B8);
+  static const Color darkTextOnPrimary = Color(0xFF0F172A);
 
   // Borders
-  static const Color border = Color(0xFF334155);
+  static const Color border = Color(0xFFE2E8F0);
+  static const Color darkBorder = Color(0xFF334155);
   static const Color borderFocus = Color(0xFF06B6D4);
 
   // Status colors
@@ -343,25 +355,43 @@ class AppTheme {
       brightness: Brightness.dark,
       fontFamily: AppTypography.fontFamily,
       primaryColor: AppColors.primaryLight,
-      scaffoldBackgroundColor: const Color(0xFF0F172A),
+      scaffoldBackgroundColor: AppColors.darkBackground,
 
       colorScheme: const ColorScheme.dark(
         primary: AppColors.primaryLight,
         secondary: AppColors.secondaryLight,
-        surface: Color(0xFF1E293B),
-        error: Color(0xFFF87171),
-        onPrimary: Color(0xFF0F172A),
-        onSecondary: Color(0xFF0F172A),
-        onSurface: Color(0xFFF1F5F9),
-        onError: Color(0xFF0F172A),
+        surface: AppColors.darkSurface,
+        error: AppColors.error,
+        onPrimary: AppColors.darkTextOnPrimary,
+        onSecondary: AppColors.darkTextOnPrimary,
+        onSurface: AppColors.darkTextPrimary,
+        onError: AppColors.darkTextOnPrimary,
+      ),
+
+      textTheme: const TextTheme(
+        displayLarge: AppTypography.displayLarge,
+        displayMedium: AppTypography.displayMedium,
+        headlineLarge: AppTypography.headlineLarge,
+        headlineMedium: AppTypography.headlineMedium,
+        titleLarge: AppTypography.titleLarge,
+        titleMedium: AppTypography.titleMedium,
+        bodyLarge: AppTypography.bodyLarge,
+        bodyMedium: AppTypography.bodyMedium,
+        bodySmall: AppTypography.bodySmall,
+        labelLarge: AppTypography.labelLarge,
+        labelMedium: AppTypography.labelMedium,
+        labelSmall: AppTypography.labelSmall,
+      ).apply(
+        bodyColor: AppColors.darkTextPrimary,
+        displayColor: AppColors.darkTextPrimary,
       ),
 
       cardTheme: CardThemeData(
-        color: const Color(0xFF1E293B),
+        color: AppColors.darkSurface,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          side: const BorderSide(color: Color(0xFF334155), width: 1),
+          side: const BorderSide(color: AppColors.darkBorder, width: 1),
         ),
         margin: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
@@ -370,15 +400,22 @@ class AppTheme {
       ),
 
       appBarTheme: const AppBarTheme(
-        backgroundColor: Color(0xFF0F172A),
-        foregroundColor: Color(0xFFF1F5F9),
+        backgroundColor: AppColors.darkBackground,
+        foregroundColor: AppColors.darkTextPrimary,
         elevation: 0,
         centerTitle: false,
       ),
 
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: AppColors.darkSurface,
+        selectedItemColor: AppColors.primaryLight,
+        unselectedItemColor: AppColors.darkTextTertiary,
+        type: BottomNavigationBarType.fixed,
+      ),
+
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFF334155),
+        fillColor: AppColors.darkSurfaceVariant,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           borderSide: BorderSide.none,
@@ -397,6 +434,29 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
           vertical: AppSpacing.md,
+        ),
+      ),
+      
+      dividerTheme: const DividerThemeData(
+        color: AppColors.darkBorder,
+        thickness: 1,
+      ),
+
+      chipTheme: ChipThemeData(
+        backgroundColor: AppColors.darkSurfaceVariant,
+        selectedColor: AppColors.primaryLight.withValues(alpha: 0.15),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusFull),
+        ),
+        side: BorderSide.none,
+      ),
+
+      bottomSheetTheme: const BottomSheetThemeData(
+        backgroundColor: AppColors.darkSurface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppSpacing.radiusXl),
+          ),
         ),
       ),
     );

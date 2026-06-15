@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'app_models.dart';
 
 /// ============================================
@@ -7,6 +8,9 @@ import 'app_models.dart';
 /// ============================================
 
 class GoalService extends ChangeNotifier {
+  static const String _goalsKey = 'app_goals';
+
+  late SharedPreferences _prefs;
   List<GoalModel> _goals = [];
   bool _isLoading = false;
 
@@ -43,27 +47,50 @@ class GoalService extends ChangeNotifier {
     return (totalSavedAmount / totalTargetAmount).clamp(0.0, 1.0).toDouble();
   }
 
-  /// Charge les objectifs (simulation)
+  /// Initialiser avec SharedPreferences
+  Future<void> initialize() async {
+    _prefs = await SharedPreferences.getInstance();
+    await loadGoals();
+  }
+
+  /// Charge les objectifs depuis SharedPreferences
   Future<void> loadGoals() async {
     try {
       _isLoading = true;
       notifyListeners();
 
-      await Future.delayed(const Duration(milliseconds: 500));
+      final goalsJson = _prefs.getStringList(_goalsKey) ?? [];
 
-      // Start with empty list
-      _goals = [];
-    } catch (e) {
-      debugPrint('Error loading goals: $e');
-    } finally {
+      _goals = goalsJson
+          .map((json) => GoalModel.fromMap(jsonDecode(json)))
+          .toList();
+
+      // Trier par date de création décroissante
+      _goals.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
       _isLoading = false;
       notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading goals: $e');
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Sauvegarder les objectifs dans SharedPreferences
+  Future<void> _saveGoals() async {
+    try {
+      final goalsJson = _goals.map((g) => jsonEncode(g.toMap())).toList();
+      await _prefs.setStringList(_goalsKey, goalsJson);
+    } catch (e) {
+      debugPrint('Error saving goals: $e');
     }
   }
 
   /// Ajouter un objectif
   Future<void> addGoal(GoalModel goal) async {
     _goals.insert(0, goal);
+    await _saveGoals();
     notifyListeners();
   }
 
@@ -73,7 +100,7 @@ class GoalService extends ChangeNotifier {
 
     if (index != -1) {
       _goals[index] = updatedGoal.copyWith(updatedAt: DateTime.now());
-
+      await _saveGoals();
       notifyListeners();
     }
   }
@@ -81,6 +108,7 @@ class GoalService extends ChangeNotifier {
   /// Supprimer un objectif
   Future<void> deleteGoal(String id) async {
     _goals.removeWhere((goal) => goal.id == id);
+    await _saveGoals();
     notifyListeners();
   }
 
@@ -102,6 +130,7 @@ class GoalService extends ChangeNotifier {
       updatedAt: DateTime.now(),
     );
 
+    await _saveGoals();
     notifyListeners();
   }
 

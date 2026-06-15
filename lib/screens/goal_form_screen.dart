@@ -6,6 +6,7 @@ import "app_theme.dart";
 import "goal_service.dart";
 import "app_models.dart";
 import "constants.dart";
+import "speed_dial_fab.dart";
 
 /// ============================================
 /// GOAL FORM SCREEN — Créer/Modifier un objectif
@@ -101,7 +102,28 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      floatingActionButton: SpeedDialFAB(
+        mainIcon: LucideIcons.paperclip,
+        actions: [
+          SpeedDialAction(
+            icon: LucideIcons.camera,
+            label: 'Take Photo',
+            color: AppColors.success,
+            onTap: () => context.push('/image-capture'),
+          ),
+          SpeedDialAction(
+            icon: LucideIcons.mic,
+            label: 'Record Voice',
+            color: AppColors.primary,
+            onTap: () => context.push('/voice-recording'),
+          ),
+        ],
+      ),
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(LucideIcons.arrowLeft),
+          onPressed: () => context.pop(),
+        ),
         title: Text(_isEditing ? 'Edit Goal' : 'New Goal'),
         actions: [
           TextButton(

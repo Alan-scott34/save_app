@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:provider/provider.dart';
 import "app_theme.dart";
 import "constants.dart";
+import "settings_service.dart";
+import "auth_service.dart";
 
 /// ============================================
 /// SETTINGS SCREEN — Paramètres de l'application
@@ -30,18 +34,6 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  // --- État des paramètres ---
-  ThemeMode _themeMode = ThemeMode.system;
-  AppLanguage _language = AppLanguage.english;
-  Currency _currency = Currency.xaf;
-  String _dateFormat = 'dd/MM/yyyy';
-
-  // --- État des notifications ---
-  bool _remindersEnabled = true;
-  bool _alertsEnabled = true;
-  bool _achievementsEnabled = true;
-
-  // --- État des actions ---
   bool _isSyncing = false;
 
   @override
@@ -52,266 +44,302 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: const Text('Settings'),
         leading: IconButton(
           icon: const Icon(LucideIcons.arrowLeft, size: 22),
-          onPressed: () => Navigator.of(context).maybePop(),
+          onPressed: () => context.canPop() ? context.pop() : context.go('/'),
         ),
       ),
-      body: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // --- Section : Apparence ---
-            _buildSectionHeader(icon: LucideIcons.palette, title: 'Appearance'),
-            _buildSettingsGroup([
-              _buildDropdownItem<ThemeMode>(
-                icon: LucideIcons.sunMoon,
-                label: 'Theme',
-                value: _themeMode,
-                items: const [
-                  DropdownMenuItem(
-                    value: ThemeMode.light,
-                    child: Text('Light'),
-                  ),
-                  DropdownMenuItem(value: ThemeMode.dark, child: Text('Dark')),
-                  DropdownMenuItem(
-                    value: ThemeMode.system,
-                    child: Text('System'),
-                  ),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _themeMode = value);
-                    // TODO: Appliquer le thème via un ThemeService
-                  }
-                },
-              ),
-              _buildDivider(),
-              _buildDropdownItem<AppLanguage>(
-                icon: LucideIcons.globe,
-                label: 'Language',
-                value: _language,
-                items: AppLanguage.values
-                    .map(
-                      (lang) => DropdownMenuItem(
-                        value: lang,
-                        child: Text('${lang.nativeName} (${lang.name})'),
+      body: Consumer<SettingsService>(
+        builder: (context, settingsService, child) {
+          return SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // --- Section : Apparence ---
+                _buildSectionHeader(
+                  icon: LucideIcons.palette,
+                  title: 'Appearance',
+                ),
+                _buildSettingsGroup([
+                  _buildDropdownItem<ThemeMode>(
+                    icon: LucideIcons.sunMoon,
+                    label: 'Theme',
+                    value: settingsService.themeMode,
+                    items: const [
+                      DropdownMenuItem(
+                        value: ThemeMode.light,
+                        child: Text('Light'),
                       ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _language = value);
-                  }
-                },
-              ),
-            ]),
+                      DropdownMenuItem(
+                        value: ThemeMode.dark,
+                        child: Text('Dark'),
+                      ),
+                      DropdownMenuItem(
+                        value: ThemeMode.system,
+                        child: Text('System'),
+                      ),
+                    ],
+                    onChanged: (value) async {
+                      if (value != null) {
+                        await settingsService.setThemeMode(value);
+                      }
+                    },
+                  ),
+                  _buildDivider(),
+                  _buildDropdownItem<AppLanguage>(
+                    icon: LucideIcons.globe,
+                    label: 'Language',
+                    value: settingsService.language,
+                    items: AppLanguage.values
+                        .map(
+                          (lang) => DropdownMenuItem(
+                            value: lang,
+                            child: Text('${lang.nativeName} (${lang.name})'),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) async {
+                      if (value != null) {
+                        await settingsService.setLanguage(value);
+                      }
+                    },
+                  ),
+                ]),
 
-            // --- Section : Préférences ---
-            _buildSectionHeader(
-              icon: LucideIcons.slidersHorizontal,
-              title: 'Preferences',
+                // --- Section : Préférences ---
+                _buildSectionHeader(
+                  icon: LucideIcons.slidersHorizontal,
+                  title: 'Preferences',
+                ),
+                _buildSettingsGroup([
+                  _buildDropdownItem<Currency>(
+                    icon: LucideIcons.coins,
+                    label: 'Default Currency',
+                    value: settingsService.currency,
+                    items: Currency.values
+                        .map(
+                          (curr) => DropdownMenuItem(
+                            value: curr,
+                            child: Text('${curr.symbol} — ${curr.name}'),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) async {
+                      if (value != null) {
+                        await settingsService.setCurrency(value);
+                      }
+                    },
+                  ),
+                  _buildDivider(),
+                  _buildDropdownItem<String>(
+                    icon: LucideIcons.calendar,
+                    label: 'Date Format',
+                    value: settingsService.dateFormat,
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'dd/MM/yyyy',
+                        child: Text('DD/MM/YYYY'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'MM/dd/yyyy',
+                        child: Text('MM/DD/YYYY'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'yyyy-MM-dd',
+                        child: Text('YYYY-MM-DD'),
+                      ),
+                    ],
+                    onChanged: (value) async {
+                      if (value != null) {
+                        await settingsService.setDateFormat(value);
+                      }
+                    },
+                  ),
+                ]),
+
+                // --- Section : Notifications ---
+                _buildSectionHeader(
+                  icon: LucideIcons.bell,
+                  title: 'Notifications',
+                ),
+                _buildSettingsGroup([
+                  _buildSwitchItem(
+                    icon: LucideIcons.alarmClock,
+                    label: 'Savings Reminders',
+                    subtitle: 'Get reminded to save regularly',
+                    value: settingsService.remindersEnabled,
+                    onChanged: (value) async {
+                      await settingsService.setRemindersEnabled(value);
+                    },
+                  ),
+                  _buildDivider(),
+                  _buildSwitchItem(
+                    icon: LucideIcons.alertTriangle,
+                    label: 'Budget Alerts',
+                    subtitle: 'Alert when exceeding budget limits',
+                    value: settingsService.alertsEnabled,
+                    onChanged: (value) async {
+                      await settingsService.setAlertsEnabled(value);
+                    },
+                  ),
+                  _buildDivider(),
+                  _buildSwitchItem(
+                    icon: LucideIcons.trophy,
+                    label: 'Achievements',
+                    subtitle: 'Celebrate milestones and goals',
+                    value: settingsService.achievementsEnabled,
+                    onChanged: (value) async {
+                      await settingsService.setAchievementsEnabled(value);
+                    },
+                  ),
+                ]),
+
+                // --- Section : Données ---
+                _buildSectionHeader(icon: LucideIcons.database, title: 'Data'),
+                _buildSettingsGroup([
+                  _buildActionItem(
+                    icon: LucideIcons.refreshCw,
+                    label: 'Sync Now',
+                    subtitle: _isSyncing
+                        ? 'Syncing...'
+                        : 'Last synced just now',
+                    trailing: _isSyncing
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.primary,
+                            ),
+                          )
+                        : const Icon(
+                            LucideIcons.chevronRight,
+                            size: 18,
+                            color: AppColors.textTertiary,
+                          ),
+                    onTap: _syncNow,
+                  ),
+                  _buildDivider(),
+                  _buildActionItem(
+                    icon: LucideIcons.download,
+                    label: 'Export All Data',
+                    subtitle: 'Download your data as CSV or PDF',
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Export feature coming soon!'),
+                          backgroundColor: AppColors.info,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              AppSpacing.radiusMd,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildDivider(),
+                  _buildActionItem(
+                    icon: LucideIcons.trash2,
+                    label: 'Clear Cache',
+                    subtitle: 'Free up storage space',
+                    color: AppColors.warning,
+                    onTap: _showClearCacheConfirmation,
+                  ),
+                ]),
+
+                // --- Section : Compte ---
+                _buildSectionHeader(icon: LucideIcons.shield, title: 'Account'),
+                _buildSettingsGroup([
+                  _buildActionItem(
+                    icon: LucideIcons.keyRound,
+                    label: 'Change Password',
+                    subtitle: 'Update your account password',
+                    onTap: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Text('Password change coming soon!'),
+                          backgroundColor: AppColors.info,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              AppSpacing.radiusMd,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildDivider(),
+                  _buildActionItem(
+                    icon: LucideIcons.logOut,
+                    label: 'Logout',
+                    subtitle: 'Sign out of your account',
+                    color: AppColors.warning,
+                    onTap: () => _showLogoutConfirmation(context),
+                  ),
+                  _buildDivider(),
+                  _buildActionItem(
+                    icon: LucideIcons.userX,
+                    label: 'Delete Account',
+                    subtitle: 'Permanently delete your account and data',
+                    color: AppColors.error,
+                    onTap: _showDeleteAccountConfirmation,
+                  ),
+                ]),
+
+                // --- Section : AI Assistant ---
+                _buildSectionHeader(
+                  icon: LucideIcons.bot,
+                  title: 'AI Assistant',
+                ),
+                _buildSettingsGroup([
+                  _buildActionItem(
+                    icon: LucideIcons.key,
+                    label: 'Gemini API Key',
+                    subtitle: settingsService.hasGeminiApiKey
+                        ? '✅ Key configured — AI enabled'
+                        : '⚠️ No key — using local responses',
+                    color: settingsService.hasGeminiApiKey
+                        ? AppColors.success
+                        : AppColors.warning,
+                    onTap: () => _showApiKeyDialog(settingsService),
+                  ),
+                ]),
+
+                // --- Section : À propos ---
+                _buildSectionHeader(icon: LucideIcons.info, title: 'About'),
+                _buildSettingsGroup([
+                  _buildActionItem(
+                    icon: LucideIcons.smartphone,
+                    label: 'App Version',
+                    subtitle:
+                        '${AppConstants.appName} v${AppConstants.appVersion}',
+                    showChevron: false,
+                    onTap: () {},
+                  ),
+                  _buildDivider(),
+                  _buildActionItem(
+                    icon: LucideIcons.fileText,
+                    label: 'Terms of Service',
+                    subtitle: 'Read our terms and conditions',
+                    onTap: () {},
+                  ),
+                  _buildDivider(),
+                  _buildActionItem(
+                    icon: LucideIcons.lock,
+                    label: 'Privacy Policy',
+                    subtitle: 'How we handle your data',
+                    onTap: () {},
+                  ),
+                ]),
+
+                const SizedBox(height: AppSpacing.xl),
+              ],
             ),
-            _buildSettingsGroup([
-              _buildDropdownItem<Currency>(
-                icon: LucideIcons.coins,
-                label: 'Default Currency',
-                value: _currency,
-                items: Currency.values
-                    .map(
-                      (curr) => DropdownMenuItem(
-                        value: curr,
-                        child: Text('${curr.symbol} — ${curr.name}'),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _currency = value);
-                  }
-                },
-              ),
-              _buildDivider(),
-              _buildDropdownItem<String>(
-                icon: LucideIcons.calendar,
-                label: 'Date Format',
-                value: _dateFormat,
-                items: const [
-                  DropdownMenuItem(
-                    value: 'dd/MM/yyyy',
-                    child: Text('DD/MM/YYYY'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'MM/dd/yyyy',
-                    child: Text('MM/DD/YYYY'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'yyyy-MM-dd',
-                    child: Text('YYYY-MM-DD'),
-                  ),
-                ],
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _dateFormat = value);
-                  }
-                },
-              ),
-            ]),
-
-            // --- Section : Notifications ---
-            _buildSectionHeader(icon: LucideIcons.bell, title: 'Notifications'),
-            _buildSettingsGroup([
-              _buildSwitchItem(
-                icon: LucideIcons.alarmClock,
-                label: 'Savings Reminders',
-                subtitle: 'Get reminded to save regularly',
-                value: _remindersEnabled,
-                onChanged: (value) {
-                  setState(() => _remindersEnabled = value);
-                },
-              ),
-              _buildDivider(),
-              _buildSwitchItem(
-                icon: LucideIcons.alertTriangle,
-                label: 'Budget Alerts',
-                subtitle: 'Alert when exceeding budget limits',
-                value: _alertsEnabled,
-                onChanged: (value) {
-                  setState(() => _alertsEnabled = value);
-                },
-              ),
-              _buildDivider(),
-              _buildSwitchItem(
-                icon: LucideIcons.trophy,
-                label: 'Achievements',
-                subtitle: 'Celebrate milestones and goals',
-                value: _achievementsEnabled,
-                onChanged: (value) {
-                  setState(() => _achievementsEnabled = value);
-                },
-              ),
-            ]),
-
-            // --- Section : Données ---
-            _buildSectionHeader(icon: LucideIcons.database, title: 'Data'),
-            _buildSettingsGroup([
-              _buildActionItem(
-                icon: LucideIcons.refreshCw,
-                label: 'Sync Now',
-                subtitle: _isSyncing ? 'Syncing...' : 'Last synced just now',
-                trailing: _isSyncing
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: AppColors.primary,
-                        ),
-                      )
-                    : const Icon(
-                        LucideIcons.chevronRight,
-                        size: 18,
-                        color: AppColors.textTertiary,
-                      ),
-                onTap: _syncNow,
-              ),
-              _buildDivider(),
-              _buildActionItem(
-                icon: LucideIcons.download,
-                label: 'Export All Data',
-                subtitle: 'Download your data as CSV or PDF',
-                onTap: () {
-                  // TODO: Implémenter l'exportation
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text('Export feature coming soon!'),
-                      backgroundColor: AppColors.info,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          AppSpacing.radiusMd,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              _buildDivider(),
-              _buildActionItem(
-                icon: LucideIcons.trash2,
-                label: 'Clear Cache',
-                subtitle: 'Free up storage space',
-                color: AppColors.warning,
-                onTap: _showClearCacheConfirmation,
-              ),
-            ]),
-
-            // --- Section : Compte ---
-            _buildSectionHeader(icon: LucideIcons.shield, title: 'Account'),
-            _buildSettingsGroup([
-              _buildActionItem(
-                icon: LucideIcons.keyRound,
-                label: 'Change Password',
-                subtitle: 'Update your account password',
-                onTap: () {
-                  // TODO: Navigation vers l'écran de changement de mot de passe
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text('Password change coming soon!'),
-                      backgroundColor: AppColors.info,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          AppSpacing.radiusMd,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-              _buildDivider(),
-              _buildActionItem(
-                icon: LucideIcons.userX,
-                label: 'Delete Account',
-                subtitle: 'Permanently delete your account and data',
-                color: AppColors.error,
-                onTap: _showDeleteAccountConfirmation,
-              ),
-            ]),
-
-            // --- Section : À propos ---
-            _buildSectionHeader(icon: LucideIcons.info, title: 'About'),
-            _buildSettingsGroup([
-              _buildActionItem(
-                icon: LucideIcons.smartphone,
-                label: 'App Version',
-                subtitle: '${AppConstants.appName} v${AppConstants.appVersion}',
-                showChevron: false,
-                onTap: () {},
-              ),
-              _buildDivider(),
-              _buildActionItem(
-                icon: LucideIcons.fileText,
-                label: 'Terms of Service',
-                subtitle: 'Read our terms and conditions',
-                onTap: () {
-                  // TODO: Ouvrir les CGU dans un navigateur
-                },
-              ),
-              _buildDivider(),
-              _buildActionItem(
-                icon: LucideIcons.lock,
-                label: 'Privacy Policy',
-                subtitle: 'How we handle your data',
-                onTap: () {
-                  // TODO: Ouvrir la politique de confidentialité
-                },
-              ),
-            ]),
-
-            const SizedBox(height: AppSpacing.xl),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -568,6 +596,120 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   /// ============================================
+  /// ACTION : API Key dialog for Gemini
+  /// ============================================
+  void _showApiKeyDialog(SettingsService settingsService) {
+    final controller = TextEditingController(text: settingsService.geminiApiKey);
+    bool obscure = true;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+          ),
+          title: Row(
+            children: [
+              const Icon(LucideIcons.bot, size: 22, color: AppColors.primary),
+              const SizedBox(width: AppSpacing.sm),
+              const Text('Gemini API Key', style: AppTypography.titleLarge),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Enter your Google Gemini API key to enable AI-powered financial analysis. Get a free key at ai.google.dev',
+                style: AppTypography.bodySmall.copyWith(
+                  color: AppColors.textSecondary,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              TextField(
+                controller: controller,
+                obscureText: obscure,
+                style: AppTypography.bodyMedium,
+                decoration: InputDecoration(
+                  hintText: 'AIza...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                    borderSide: const BorderSide(color: AppColors.primary),
+                  ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      obscure ? LucideIcons.eye : LucideIcons.eyeOff,
+                      size: 18,
+                    ),
+                    onPressed: () => setDialogState(() => obscure = !obscure),
+                  ),
+                ),
+              ),
+              if (settingsService.hasGeminiApiKey) ...[
+                const SizedBox(height: AppSpacing.sm),
+                TextButton.icon(
+                  onPressed: () async {
+                    await settingsService.setGeminiApiKey('');
+                    controller.clear();
+                    if (mounted) {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('API key removed'),
+                          backgroundColor: AppColors.warning,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                    }
+                  },
+                  icon: const Icon(LucideIcons.trash2,
+                      size: 16, color: AppColors.error),
+                  label: const Text(
+                    'Remove key',
+                    style: TextStyle(color: AppColors.error),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final key = controller.text.trim();
+                await settingsService.setGeminiApiKey(key);
+                if (mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(key.isEmpty
+                          ? 'API key cleared'
+                          : '🤖 Gemini AI enabled!'),
+                      backgroundColor: key.isEmpty
+                          ? AppColors.warning
+                          : AppColors.success,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// ============================================
   /// ACTION : Synchroniser les données
   /// ============================================
   Future<void> _syncNow() async {
@@ -590,6 +732,55 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       );
     }
+  }
+
+  /// ============================================
+  /// ACTION : Confirmation de déconnexion
+  /// ============================================
+  void _showLogoutConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        ),
+        title: Row(
+          children: [
+            const Icon(LucideIcons.logOut, size: 22, color: AppColors.warning),
+            const SizedBox(width: AppSpacing.sm),
+            const Text('Logout', style: AppTypography.titleLarge),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to logout? You will need to login again to access your account.',
+          style: AppTypography.bodyMedium.copyWith(
+            color: AppColors.textSecondary,
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              final authService = context.read<AuthService>();
+              await authService.logout();
+              if (context.mounted) {
+                context.go('/login');
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.warning,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
+    );
   }
 
   /// ============================================

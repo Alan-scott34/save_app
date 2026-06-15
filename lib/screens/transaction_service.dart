@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import "app_models.dart";
 
 /// ============================================
 /// TRANSACTION SERVICE — Service de gestion des transactions
 /// ============================================
 /// Gère les revenus (IncomeModel) et dépenses (ExpenseModel).
-/// Pour l'instant, c'est un stub avec des données mock.
-/// Sera connecté à SQLite + Cloud Firestore.
+/// Persiste les données avec SharedPreferences.
 /// ============================================
 
 class TransactionService extends ChangeNotifier {
+  static const String _incomesKey = 'app_incomes';
+  static const String _expensesKey = 'app_expenses';
+
+  late SharedPreferences _prefs;
   List<IncomeModel> _incomes = [];
   List<ExpenseModel> _expenses = [];
   bool _isLoading = false;
@@ -33,24 +38,58 @@ class TransactionService extends ChangeNotifier {
   double get savingsRate =>
       totalIncome > 0 ? (netSavings / totalIncome) * 100 : 0;
 
-  /// Charger les données (mock pour l'instant)
+  /// Initialiser avec SharedPreferences
+  Future<void> initialize() async {
+    _prefs = await SharedPreferences.getInstance();
+    await loadTransactions();
+  }
+
+  /// Charger les données depuis SharedPreferences
   Future<void> loadTransactions() async {
-    _isLoading = true;
-    notifyListeners();
+    try {
+      _isLoading = true;
+      notifyListeners();
 
-    await Future.delayed(const Duration(milliseconds: 500));
+      final incomesJson = _prefs.getStringList(_incomesKey) ?? [];
+      final expensesJson = _prefs.getStringList(_expensesKey) ?? [];
 
-    // Start with empty lists
-    _incomes = [];
-    _expenses = [];
+      _incomes = incomesJson
+          .map((json) => IncomeModel.fromMap(jsonDecode(json)))
+          .toList();
+      _expenses = expensesJson
+          .map((json) => ExpenseModel.fromMap(jsonDecode(json)))
+          .toList();
 
-    _isLoading = false;
-    notifyListeners();
+      // Trier par date décroissante
+      _incomes.sort((a, b) => b.date.compareTo(a.date));
+      _expenses.sort((a, b) => b.date.compareTo(a.date));
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading transactions: $e');
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Sauvegarder les transactions dans SharedPreferences
+  Future<void> _saveTransactions() async {
+    try {
+      final incomesJson = _incomes.map((i) => jsonEncode(i.toMap())).toList();
+      final expensesJson = _expenses.map((e) => jsonEncode(e.toMap())).toList();
+
+      await _prefs.setStringList(_incomesKey, incomesJson);
+      await _prefs.setStringList(_expensesKey, expensesJson);
+    } catch (e) {
+      debugPrint('Error saving transactions: $e');
+    }
   }
 
   /// Ajouter un revenu
   Future<void> addIncome(IncomeModel income) async {
     _incomes.insert(0, income);
+    await _saveTransactions();
     notifyListeners();
   }
 
@@ -59,6 +98,7 @@ class TransactionService extends ChangeNotifier {
     final index = _incomes.indexWhere((i) => i.id == income.id);
     if (index != -1) {
       _incomes[index] = income;
+      await _saveTransactions();
       notifyListeners();
     }
   }
@@ -66,12 +106,14 @@ class TransactionService extends ChangeNotifier {
   /// Supprimer un revenu
   Future<void> deleteIncome(String id) async {
     _incomes.removeWhere((i) => i.id == id);
+    await _saveTransactions();
     notifyListeners();
   }
 
   /// Ajouter une dépense
   Future<void> addExpense(ExpenseModel expense) async {
     _expenses.insert(0, expense);
+    await _saveTransactions();
     notifyListeners();
   }
 
@@ -80,6 +122,7 @@ class TransactionService extends ChangeNotifier {
     final index = _expenses.indexWhere((e) => e.id == expense.id);
     if (index != -1) {
       _expenses[index] = expense;
+      await _saveTransactions();
       notifyListeners();
     }
   }
@@ -87,6 +130,7 @@ class TransactionService extends ChangeNotifier {
   /// Supprimer une dépense
   Future<void> deleteExpense(String id) async {
     _expenses.removeWhere((e) => e.id == id);
+    await _saveTransactions();
     notifyListeners();
   }
 

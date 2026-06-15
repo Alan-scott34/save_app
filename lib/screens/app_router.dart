@@ -18,6 +18,8 @@ import "profile_screen.dart";
 import "settings_screen.dart";
 import "voice_recording_screen.dart";
 import "image_capture_screen.dart";
+import "chatbot_screen.dart";
+import "achievements_screen.dart";
 
 /// ============================================
 /// APP ROUTER — Configuration de navigation
@@ -197,6 +199,16 @@ final GoRouter appRouter = GoRouter(
       path: '/image-capture',
       name: 'imageCapture',
       builder: (context, state) => const ImageCaptureScreen(),
+    ),
+    GoRoute(
+      path: '/chatbot',
+      name: 'chatbot',
+      builder: (context, state) => const ChatbotScreen(),
+    ),
+    GoRoute(
+      path: '/achievements',
+      name: 'achievements',
+      builder: (context, state) => const AchievementsScreen(),
     ),
   ],
 

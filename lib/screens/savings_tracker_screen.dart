@@ -93,13 +93,7 @@ class _SavingsTrackerScreenState extends State<SavingsTrackerScreen>
         title: const Text('Savings Tracker'),
         leading: IconButton(
           icon: const Icon(LucideIcons.arrowLeft, size: 22),
-          onPressed: () {
-            if (Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
-            } else {
-              context.go('/');
-            }
-          },
+          onPressed: () => context.canPop() ? context.pop() : context.go('/'),
         ),
       ),
       body: Consumer<TransactionService>(

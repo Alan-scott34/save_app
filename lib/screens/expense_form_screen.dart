@@ -6,6 +6,7 @@ import "app_theme.dart";
 import "transaction_service.dart";
 import "app_models.dart";
 import "constants.dart";
+import "speed_dial_fab.dart";
 
 /// ============================================
 /// EXPENSE FORM SCREEN — Formulaire d'ajout/modification de dépense
@@ -93,6 +94,23 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      floatingActionButton: SpeedDialFAB(
+        mainIcon: LucideIcons.paperclip,
+        actions: [
+          SpeedDialAction(
+            icon: LucideIcons.camera,
+            label: 'Take Photo',
+            color: AppColors.success,
+            onTap: () => context.push('/image-capture'),
+          ),
+          SpeedDialAction(
+            icon: LucideIcons.mic,
+            label: 'Record Voice',
+            color: AppColors.primary,
+            onTap: () => context.push('/voice-recording'),
+          ),
+        ],
+      ),
       appBar: AppBar(
         title: Text(_isEditing ? 'Edit Expense' : 'Add Expense'),
         actions: [
@@ -123,10 +141,9 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
               _buildDateSelector(),
               const SizedBox(height: AppSpacing.xl),
               _buildNoteField(),
-              const SizedBox(height: AppSpacing.xl),
-              _buildExtraOptions(),
               const SizedBox(height: AppSpacing.xxl),
               _buildSaveButton(),
+              const SizedBox(height: 100), // Espace pour le FAB
             ],
           ),
         ),

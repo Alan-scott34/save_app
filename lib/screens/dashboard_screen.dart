@@ -8,6 +8,7 @@ import "goal_service.dart";
 import "auth_service.dart";
 import "app_models.dart";
 import "constants.dart";
+import "speed_dial_fab.dart";
 
 /// ============================================
 /// DASHBOARD SCREEN — Tableau de bord principal
@@ -84,11 +85,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
                   const SizedBox(height: AppSpacing.lg),
 
-                  // --- Actions rapides : photo et audio ---
-                  _buildQuickActions(),
-
-                  const SizedBox(height: AppSpacing.lg),
-
                   // --- Section Objectifs actifs ---
                   _buildActiveGoalsSection(),
 
@@ -104,18 +100,28 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ],
         ),
       ),
-
-      // --- Bouton flottant : Ajouter transaction ---
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showAddTransactionSheet(context),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 4,
-        icon: const Icon(LucideIcons.plus, size: 20),
-        label: const Text(
-          'Add',
-          style: TextStyle(fontFamily: 'Poppins', fontWeight: FontWeight.w600),
-        ),
+      floatingActionButton: SpeedDialFAB(
+        mainIcon: LucideIcons.plus,
+        actions: [
+          SpeedDialAction(
+            icon: LucideIcons.trendingDown,
+            label: 'Add Expense',
+            color: AppColors.expense,
+            onTap: () => context.push('/expense/add'),
+          ),
+          SpeedDialAction(
+            icon: LucideIcons.trendingUp,
+            label: 'Add Income',
+            color: AppColors.income,
+            onTap: () => context.push('/income/add'),
+          ),
+          SpeedDialAction(
+            icon: LucideIcons.target,
+            label: 'Add Goal',
+            color: AppColors.savings,
+            onTap: () => context.push('/goals/add'),
+          ),
+        ],
       ),
     );
   }
@@ -165,6 +171,30 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
       actions: [
+        // --- Bouton Chatbot ---
+        Padding(
+          padding: const EdgeInsets.only(right: 8.0),
+          child: GestureDetector(
+            onTap: () => context.push('/chatbot'),
+            child: Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Center(
+                child: Icon(
+                  LucideIcons.messageCircle,
+                  size: 20,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ),
+        ),
+
         // --- Bouton Notifications ---
         Padding(
           padding: const EdgeInsets.only(right: 8.0),
@@ -259,84 +289,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  /// ============================================
-  /// WIDGET : Actions rapides (photo / audio)
-  /// ============================================
-  Widget _buildQuickActions() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildActionCard(
-              title: 'Add Receipt',
-              subtitle: 'Capture or import a receipt',
-              icon: LucideIcons.camera,
-              onTap: () => GoRouter.of(context).go('/image-capture'),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
-          Expanded(
-            child: _buildActionCard(
-              title: 'Voice Note',
-              subtitle: 'Record audio for later',
-              icon: LucideIcons.mic,
-              onTap: () => GoRouter.of(context).go('/voice-recording'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildActionCard({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-              ),
-              child: Center(
-                child: Icon(icon, color: AppColors.primary, size: 22),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              title,
-              style: AppTypography.titleMedium.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              subtitle,
-              style: AppTypography.bodySmall.copyWith(
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   /// Carte principale avec le solde
   Widget _buildMainBalanceCard(TransactionService service) {

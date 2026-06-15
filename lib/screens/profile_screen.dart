@@ -18,9 +18,12 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 
 import 'app_theme.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 import 'auth_service.dart';
 import 'transaction_service.dart';
 import 'goal_service.dart';
+import 'settings_service.dart';
 import 'constants.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -31,6 +34,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final ImagePicker _picker = ImagePicker();
+
   @override
   void initState() {
     super.initState();
@@ -39,6 +44,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
       context.read<TransactionService>().loadTransactions();
       context.read<GoalService>().loadGoals();
     });
+  }
+
+  Future<void> _pickAvatar() async {
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 500,
+        maxHeight: 500,
+      );
+      
+      if (image != null && mounted) {
+        await context.read<SettingsService>().setAvatarPath(image.path);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Profile picture updated successfully'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to pick image'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 
   @override
@@ -65,8 +99,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   // PROFILE HEADER
   // ======================================================
   Widget _buildProfileHeader() {
-    return Consumer<AuthService>(
-      builder: (context, authService, child) {
+    return Consumer2<AuthService, SettingsService>(
+      builder: (context, authService, settingsService, child) {
         final user = authService.user;
 
         final String fullName = user?.fullName ?? 'John Doe';
@@ -91,43 +125,43 @@ class _ProfileScreenState extends State<ProfileScreen> {
             children: [
               Stack(
                 children: [
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withValues(alpha: 0.2),
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.4),
-                        width: 3,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        _getInitials(fullName),
-                        style: const TextStyle(
-                          fontFamily: AppTypography.fontFamily,
-                          fontSize: 36,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                    Container(
+                      width: 100,
+                      height: 100,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withValues(alpha: 0.2),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.4),
+                          width: 3,
                         ),
                       ),
+                      child: ClipOval(
+                        child: settingsService.hasAvatar && File(settingsService.avatarPath).existsSync()
+                            ? Image.file(
+                                File(settingsService.avatarPath),
+                                fit: BoxFit.cover,
+                              )
+                            : Center(
+                                child: Text(
+                                  _getInitials(fullName),
+                                  style: const TextStyle(
+                                    fontFamily: AppTypography.fontFamily,
+                                    fontSize: 36,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                      ),
                     ),
-                  ),
 
-                  Positioned(
-                    right: 0,
-                    bottom: 0,
-                    child: GestureDetector(
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: const Text('Avatar edit coming soon!'),
-                            backgroundColor: AppColors.info,
-                          ),
-                        );
-                      },
-                      child: Container(
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: GestureDetector(
+                        onTap: _pickAvatar,
+                        child: Container(
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
@@ -340,6 +374,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
               label: 'Savings Tracker',
               subtitle: 'Monitor savings',
               onTap: () => context.go('/savings'),
+            ),
+            _buildMenuDivider(),
+            _buildMenuItem(
+              icon: LucideIcons.award,
+              label: 'Achievements',
+              subtitle: 'Your milestones',
+              onTap: () => context.go('/achievements'),
             ),
             _buildMenuDivider(),
             _buildMenuItem(
