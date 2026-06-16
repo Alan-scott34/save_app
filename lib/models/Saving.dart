@@ -10,6 +10,9 @@ class Saving extends Model {
   final double? _amount;
   final TemporalDateTime? _date;
   final String? _category;
+  final String? _type; // Income, Expense, Goal
+  final String? _imagePath;
+  final String? _audioPath;
   final String? _note;
   final TemporalDateTime? _createdAt;
   final TemporalDateTime? _updatedAt;
@@ -65,6 +68,18 @@ class Saving extends Model {
     return _category;
   }
 
+  String get type {
+    return _type ?? 'Expense';
+  }
+
+  String? get imagePath {
+    return _imagePath;
+  }
+
+  String? get audioPath {
+    return _audioPath;
+  }
+
   String? get note {
     return _note;
   }
@@ -83,6 +98,9 @@ class Saving extends Model {
     required amount,
     required date,
     category,
+    type,
+    imagePath,
+    audioPath,
     note,
     createdAt,
     updatedAt,
@@ -90,6 +108,9 @@ class Saving extends Model {
        _amount = amount,
        _date = date,
        _category = category,
+       _type = type,
+       _imagePath = imagePath,
+       _audioPath = audioPath,
        _note = note,
        _createdAt = createdAt,
        _updatedAt = updatedAt;
@@ -100,6 +121,9 @@ class Saving extends Model {
     required double amount,
     required TemporalDateTime date,
     String? category,
+    String? type,
+    String? imagePath,
+    String? audioPath,
     String? note,
   }) {
     return Saving._internal(
@@ -108,6 +132,9 @@ class Saving extends Model {
       amount: amount,
       date: date,
       category: category,
+      type: type,
+      imagePath: imagePath,
+      audioPath: audioPath,
       note: note,
     );
   }
@@ -125,6 +152,9 @@ class Saving extends Model {
         _amount == other._amount &&
         _date == other._date &&
         _category == other._category &&
+        _type == other._type &&
+        _imagePath == other._imagePath &&
+        _audioPath == other._audioPath &&
         _note == other._note;
   }
 
@@ -153,6 +183,21 @@ class Saving extends Model {
       ", ",
     );
     buffer.write(
+      "type="
+      "$_type"
+      ", ",
+    );
+    buffer.write(
+      "imagePath="
+      "$_imagePath"
+      ", ",
+    );
+    buffer.write(
+      "audioPath="
+      "$_audioPath"
+      ", ",
+    );
+    buffer.write(
       "note="
       "$_note"
       ", ",
@@ -174,6 +219,9 @@ class Saving extends Model {
     double? amount,
     TemporalDateTime? date,
     String? category,
+    String? type,
+    String? imagePath,
+    String? audioPath,
     String? note,
   }) {
     return Saving._internal(
@@ -182,6 +230,9 @@ class Saving extends Model {
       amount: amount ?? this.amount,
       date: date ?? this.date,
       category: category ?? this.category,
+      type: type ?? this.type,
+      imagePath: imagePath ?? this.imagePath,
+      audioPath: audioPath ?? this.audioPath,
       note: note ?? this.note,
     );
   }
@@ -194,6 +245,9 @@ class Saving extends Model {
           ? TemporalDateTime.fromString(json['date'])
           : null,
       _category = json['category'],
+      _type = json['type'],
+      _imagePath = json['imagePath'],
+      _audioPath = json['audioPath'],
       _note = json['note'],
       _createdAt = json['createdAt'] != null
           ? TemporalDateTime.fromString(json['createdAt'])
@@ -209,6 +263,9 @@ class Saving extends Model {
     'amount': _amount,
     'date': _date?.format(),
     'category': _category,
+    'type': _type,
+    'imagePath': _imagePath,
+    'audioPath': _audioPath,
     'note': _note,
     'createdAt': _createdAt?.format(),
     'updatedAt': _updatedAt?.format(),
@@ -221,6 +278,9 @@ class Saving extends Model {
     'amount': _amount,
     'date': _date,
     'category': _category,
+    'type': _type,
+    'imagePath': _imagePath,
+    'audioPath': _audioPath,
     'note': _note,
     'createdAt': _createdAt,
     'updatedAt': _updatedAt,
@@ -231,6 +291,9 @@ class Saving extends Model {
   static final QueryField AMOUNT = QueryField(fieldName: "amount");
   static final QueryField DATE = QueryField(fieldName: "date");
   static final QueryField CATEGORY = QueryField(fieldName: "category");
+  static final QueryField TYPE = QueryField(fieldName: "type");
+  static final QueryField IMAGEPATH = QueryField(fieldName: "imagePath");
+  static final QueryField AUDIOPATH = QueryField(fieldName: "audioPath");
   static final QueryField NOTE = QueryField(fieldName: "note");
   static var schema = Model.defineSchema(
     define: (ModelSchemaDefinition modelSchemaDefinition) {
@@ -266,6 +329,30 @@ class Saving extends Model {
       modelSchemaDefinition.addField(
         ModelFieldDefinition.field(
           key: Saving.CATEGORY,
+          isRequired: false,
+          ofType: ModelFieldType(ModelFieldTypeEnum.string),
+        ),
+      );
+
+      modelSchemaDefinition.addField(
+        ModelFieldDefinition.field(
+          key: Saving.TYPE,
+          isRequired: false,
+          ofType: ModelFieldType(ModelFieldTypeEnum.string),
+        ),
+      );
+
+      modelSchemaDefinition.addField(
+        ModelFieldDefinition.field(
+          key: Saving.IMAGEPATH,
+          isRequired: false,
+          ofType: ModelFieldType(ModelFieldTypeEnum.string),
+        ),
+      );
+
+      modelSchemaDefinition.addField(
+        ModelFieldDefinition.field(
+          key: Saving.AUDIOPATH,
           isRequired: false,
           ofType: ModelFieldType(ModelFieldTypeEnum.string),
         ),

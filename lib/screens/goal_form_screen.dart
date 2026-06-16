@@ -31,6 +31,35 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
   bool _isEmergencyFund = false;
   bool get _isEditing => widget.goalId != null;
 
+  // Existing goal when editing — preserves currentAmount and createdAt
+  GoalModel? _existingGoal;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isEditing) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _loadExistingGoal());
+    }
+  }
+
+  Future<void> _loadExistingGoal() async {
+    final service = Provider.of<GoalService>(context, listen: false);
+    if (service.goals.isEmpty) await service.loadGoals();
+    if (!mounted) return;
+    final goal = service.getGoalById(widget.goalId!);
+    if (goal != null) {
+      setState(() {
+        _existingGoal = goal;
+        _titleController.text = goal.title;
+        _descriptionController.text = goal.description ?? '';
+        _targetAmountController.text = goal.targetAmount.toStringAsFixed(0);
+        _selectedPriority = goal.priority;
+        _selectedDeadline = goal.deadline;
+        _isEmergencyFund = goal.isEmergencyFund;
+      });
+    }
+  }
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -77,7 +106,11 @@ class _GoalFormScreenState extends State<GoalFormScreen> {
       deadline: _selectedDeadline,
       priority: _selectedPriority,
       isEmergencyFund: _isEmergencyFund,
-      createdAt: DateTime.now(),
+      // Preserve savings progress and original timestamp when editing
+      currentAmount: _existingGoal?.currentAmount ?? 0.0,
+      isAchieved: _existingGoal?.isAchieved ?? false,
+      createdAt: _existingGoal?.createdAt ?? DateTime.now(),
+      updatedAt: _isEditing ? DateTime.now() : null,
     );
 
     if (_isEditing) {

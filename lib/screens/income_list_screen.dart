@@ -22,6 +22,9 @@ class IncomeListScreen extends StatefulWidget {
 class _IncomeListScreenState extends State<IncomeListScreen> {
   TimePeriod _selectedPeriod = TimePeriod.monthly;
   IncomeCategory? _selectedCategory;
+  String _searchQuery = '';
+  bool _showSearch = false;
+  final _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -35,13 +38,44 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Income'),
+        title: _showSearch
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                style: AppTypography.bodyMedium,
+                decoration: InputDecoration(
+                  hintText: 'Search income...',
+                  border: InputBorder.none,
+                  hintStyle: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+                onChanged: (value) => setState(() => _searchQuery = value),
+              )
+            : const Text('Income'),
         actions: [
-          IconButton(icon: const Icon(LucideIcons.search), onPressed: () {}),
+          IconButton(
+            icon: Icon(_showSearch ? LucideIcons.x : LucideIcons.search),
+            onPressed: () {
+              setState(() {
+                _showSearch = !_showSearch;
+                if (!_showSearch) {
+                  _searchQuery = '';
+                  _searchController.clear();
+                }
+              });
+            },
+          ),
           IconButton(
             icon: const Icon(LucideIcons.filter),
             onPressed: _showFilterSheet,
@@ -54,13 +88,22 @@ class _IncomeListScreenState extends State<IncomeListScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // Apply filters
+          // Apply category filter then search query
           List<IncomeModel> incomes = service.incomes;
 
           if (_selectedCategory != null) {
             incomes = incomes
-                .where((income) => income.category == _selectedCategory)
+                .where((i) => i.category == _selectedCategory)
                 .toList();
+          }
+
+          if (_searchQuery.isNotEmpty) {
+            final q = _searchQuery.toLowerCase();
+            incomes = incomes.where((i) {
+              return i.category.label.toLowerCase().contains(q) ||
+                  (i.note?.toLowerCase().contains(q) ?? false) ||
+                  i.amount.toStringAsFixed(0).contains(q);
+            }).toList();
           }
 
           if (incomes.isEmpty) {

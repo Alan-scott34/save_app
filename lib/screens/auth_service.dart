@@ -182,6 +182,76 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Mettre à jour le profil utilisateur (nom + email).
+  Future<bool> updateProfile(String fullName, String email) async {
+    if (fullName.trim().isEmpty || email.trim().isEmpty) {
+      _error = 'Name and email are required';
+      notifyListeners();
+      return false;
+    }
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final updated = UserModel(
+        id: _user!.id,
+        fullName: fullName.trim(),
+        email: email.trim(),
+        passwordHash: _user!.passwordHash,
+        createdAt: _user!.createdAt,
+      );
+      await prefs.setString(_userPrefsKey, jsonEncode(updated.toMap()));
+      _user = updated;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = 'Failed to update profile';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Changer le mot de passe (vérifie l'ancien mot de passe).
+  Future<bool> changePassword(
+    String currentPassword,
+    String newPassword,
+  ) async {
+    if (currentPassword.isEmpty || newPassword.isEmpty) {
+      _error = 'All fields are required';
+      notifyListeners();
+      return false;
+    }
+    if (_hashPassword(currentPassword) != _user!.passwordHash) {
+      _error = 'Current password is incorrect';
+      notifyListeners();
+      return false;
+    }
+    if (newPassword.length < 6) {
+      _error = 'New password must be at least 6 characters';
+      notifyListeners();
+      return false;
+    }
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final updated = UserModel(
+        id: _user!.id,
+        fullName: _user!.fullName,
+        email: _user!.email,
+        passwordHash: _hashPassword(newPassword),
+        createdAt: _user!.createdAt,
+      );
+      await prefs.setString(_userPrefsKey, jsonEncode(updated.toMap()));
+      _user = updated;
+      _error = null;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = 'Failed to change password';
+      notifyListeners();
+      return false;
+    }
+  }
+
   String _hashPassword(String password) {
     return base64Encode(utf8.encode(password));
   }

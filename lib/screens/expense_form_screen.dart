@@ -30,6 +30,38 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
   DateTime _selectedDate = DateTime.now();
   bool get _isEditing => widget.expenseId != null;
 
+  // Existing record when editing
+  ExpenseModel? _existingExpense;
+  String? _pendingAttachmentPath;
+  String? _pendingVoiceNotePath;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isEditing) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _loadExistingData());
+    }
+  }
+
+  Future<void> _loadExistingData() async {
+    final service = Provider.of<TransactionService>(context, listen: false);
+    if (service.expenses.isEmpty) await service.loadTransactions();
+    if (!mounted) return;
+    final idx = service.expenses.indexWhere((e) => e.id == widget.expenseId);
+    if (idx != -1) {
+      final expense = service.expenses[idx];
+      setState(() {
+        _existingExpense = expense;
+        _amountController.text = expense.amount.toStringAsFixed(0);
+        _noteController.text = expense.note ?? '';
+        _selectedCategory = expense.category;
+        _selectedDate = expense.date;
+        _pendingAttachmentPath = expense.attachmentUrl;
+        _pendingVoiceNotePath = expense.voiceNoteUrl;
+      });
+    }
+  }
+
   @override
   void dispose() {
     _amountController.dispose();
@@ -69,7 +101,11 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
       category: _selectedCategory,
       date: _selectedDate,
       note: _noteController.text.isEmpty ? null : _noteController.text,
-      createdAt: DateTime.now(),
+      attachmentUrl: _pendingAttachmentPath,
+      voiceNoteUrl: _pendingVoiceNotePath,
+      // Preserve original createdAt when editing
+      createdAt: _existingExpense?.createdAt ?? DateTime.now(),
+      updatedAt: _isEditing ? DateTime.now() : null,
     );
 
     if (_isEditing) {
@@ -99,15 +135,39 @@ class _ExpenseFormScreenState extends State<ExpenseFormScreen> {
         actions: [
           SpeedDialAction(
             icon: LucideIcons.camera,
-            label: 'Take Photo',
-            color: AppColors.success,
-            onTap: () => context.push('/image-capture'),
+            label: _pendingAttachmentPath != null ? 'Photo Attached ✓' : 'Attach Photo',
+            color: _pendingAttachmentPath != null ? AppColors.income : AppColors.success,
+            onTap: () async {
+              final path = await context.push<String>('/image-capture');
+              if (path != null && mounted) {
+                setState(() => _pendingAttachmentPath = path);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Photo attached to expense'),
+                    backgroundColor: AppColors.success,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
           ),
           SpeedDialAction(
             icon: LucideIcons.mic,
-            label: 'Record Voice',
-            color: AppColors.primary,
-            onTap: () => context.push('/voice-recording'),
+            label: _pendingVoiceNotePath != null ? 'Voice Attached ✓' : 'Attach Voice',
+            color: _pendingVoiceNotePath != null ? AppColors.income : AppColors.primary,
+            onTap: () async {
+              final path = await context.push<String>('/voice-recording');
+              if (path != null && mounted) {
+                setState(() => _pendingVoiceNotePath = path);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Voice note attached to expense'),
+                    backgroundColor: AppColors.primary,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
           ),
         ],
       ),

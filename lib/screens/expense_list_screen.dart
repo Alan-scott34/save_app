@@ -21,6 +21,9 @@ class ExpenseListScreen extends StatefulWidget {
 class _ExpenseListScreenState extends State<ExpenseListScreen> {
   TimePeriod _selectedPeriod = TimePeriod.monthly;
   ExpenseCategory? _selectedCategory;
+  String _searchQuery = '';
+  bool _showSearch = false;
+  final _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -34,13 +37,44 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
   }
 
   @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Expenses'),
+        title: _showSearch
+            ? TextField(
+                controller: _searchController,
+                autofocus: true,
+                style: AppTypography.bodyMedium,
+                decoration: InputDecoration(
+                  hintText: 'Search expenses...',
+                  border: InputBorder.none,
+                  hintStyle: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.textTertiary,
+                  ),
+                ),
+                onChanged: (value) => setState(() => _searchQuery = value),
+              )
+            : const Text('Expenses'),
         actions: [
-          IconButton(icon: const Icon(LucideIcons.search), onPressed: () {}),
+          IconButton(
+            icon: Icon(_showSearch ? LucideIcons.x : LucideIcons.search),
+            onPressed: () {
+              setState(() {
+                _showSearch = !_showSearch;
+                if (!_showSearch) {
+                  _searchQuery = '';
+                  _searchController.clear();
+                }
+              });
+            },
+          ),
           IconButton(
             icon: const Icon(LucideIcons.filter),
             onPressed: () => _showFilterSheet(),
@@ -53,7 +87,23 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final expenses = service.expenses;
+          // Apply category filter then search query
+          List<ExpenseModel> expenses = service.expenses;
+
+          if (_selectedCategory != null) {
+            expenses = expenses
+                .where((e) => e.category == _selectedCategory)
+                .toList();
+          }
+
+          if (_searchQuery.isNotEmpty) {
+            final q = _searchQuery.toLowerCase();
+            expenses = expenses.where((e) {
+              return e.category.label.toLowerCase().contains(q) ||
+                  (e.note?.toLowerCase().contains(q) ?? false) ||
+                  e.amount.toStringAsFixed(0).contains(q);
+            }).toList();
+          }
 
           if (expenses.isEmpty) {
             return _buildEmptyState();

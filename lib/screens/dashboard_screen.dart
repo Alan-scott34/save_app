@@ -53,6 +53,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
     });
   }
 
+  /// Returns time-appropriate greeting — no emoji, purely text
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour >= 6 && hour < 12) return 'Good Morning';
+    if (hour >= 12 && hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -104,22 +112,16 @@ class _DashboardScreenState extends State<DashboardScreen> {
         mainIcon: LucideIcons.plus,
         actions: [
           SpeedDialAction(
-            icon: LucideIcons.trendingDown,
-            label: 'Add Expense',
-            color: AppColors.expense,
-            onTap: () => context.push('/expense/add'),
+            icon: LucideIcons.camera,
+            label: 'Capture Photo',
+            color: AppColors.success,
+            onTap: () => context.push('/image-capture'),
           ),
           SpeedDialAction(
-            icon: LucideIcons.trendingUp,
-            label: 'Add Income',
-            color: AppColors.income,
-            onTap: () => context.push('/income/add'),
-          ),
-          SpeedDialAction(
-            icon: LucideIcons.target,
-            label: 'Add Goal',
-            color: AppColors.savings,
-            onTap: () => context.push('/goals/add'),
+            icon: LucideIcons.mic,
+            label: 'Record Voice Note',
+            color: AppColors.primary,
+            onTap: () => context.push('/voice-recording'),
           ),
         ],
       ),
@@ -149,7 +151,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Good Morning! 👋',
+                  _getGreeting(),
                   style: AppTypography.bodySmall.copyWith(
                     color: AppColors.textSecondary,
                     height: 1.0,

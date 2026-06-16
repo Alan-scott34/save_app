@@ -107,7 +107,7 @@ const wchar_t* WindowClassRegistrar::GetWindowClass() {
 }
 
 void WindowClassRegistrar::UnregisterWindowClass() {
-  UnregisterClass(kWindowClassName, nullptr);
+  UnregisterClass(kWindowClassName, GetModuleHandle(nullptr));
   class_registered_ = false;
 }
 
@@ -218,7 +218,7 @@ Win32Window::MessageHandler(HWND hwnd,
       return 0;
   }
 
-  return DefWindowProc(window_handle_, message, wparam, lparam);
+  return DefWindowProc(hwnd, message, wparam, lparam);
 }
 
 void Win32Window::Destroy() {
