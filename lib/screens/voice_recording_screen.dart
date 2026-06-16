@@ -8,7 +8,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'app_theme.dart';
 
 class VoiceRecordingScreen extends StatefulWidget {
-  const VoiceRecordingScreen({super.key});
+  /// Optional ID to link the voice note to a specific transaction.
+  final String? attachToTransactionId;
+
+  const VoiceRecordingScreen({super.key, this.attachToTransactionId});
 
   @override
   State<VoiceRecordingScreen> createState() => _VoiceRecordingScreenState();
@@ -752,6 +755,7 @@ class _VoiceRecordingScreenState extends State<VoiceRecordingScreen>
       date: DateTime.now(),
       isSynced: false,
       filePath: '',
+      transactionId: widget.attachToTransactionId,
     );
 
     setState(() {
@@ -778,9 +782,12 @@ class _VoiceRecordingScreenState extends State<VoiceRecordingScreen>
   }
 
   void _convertToTransaction(VoiceNote note) {
+    final message = note.transactionId != null 
+        ? 'Linking "${note.title}" to transaction ${note.transactionId}...'
+        : 'Converting "${note.title}" to new transaction...';
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Converting "${note.title}" to transaction...'),
+        content: Text(message),
         backgroundColor: AppColors.income,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -861,6 +868,7 @@ class VoiceNote {
   final DateTime date;
   final bool isSynced;
   final String filePath;
+  final String? transactionId;
 
   const VoiceNote({
     required this.id,
@@ -869,6 +877,7 @@ class VoiceNote {
     required this.date,
     this.isSynced = false,
     required this.filePath,
+    this.transactionId,
   });
 
   Map<String, dynamic> toMap() {
@@ -879,6 +888,7 @@ class VoiceNote {
       'date': date.toIso8601String(),
       'isSynced': isSynced,
       'filePath': filePath,
+      'transactionId': transactionId,
     };
   }
 
@@ -895,6 +905,7 @@ class VoiceNote {
       isSynced:
           map['isSynced'] == true || map['isSynced']?.toString() == 'true',
       filePath: map['filePath']?.toString() ?? '',
+      transactionId: map['transactionId']?.toString(),
     );
   }
 }

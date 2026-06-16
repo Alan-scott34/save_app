@@ -171,4 +171,67 @@ class TransactionService extends ChangeNotifier {
     all.sort((a, b) => b.date.compareTo(a.date));
     return all.take(10).toList();
   }
+
+  /// Get historical savings data for charts (Requirement 2 & 13)
+  /// Returns actual values grouped by month from stored transaction records.
+  List<Map<String, dynamic>> getMonthlySavingsHistory({int months = 6}) {
+    final now = DateTime.now();
+    final results = <Map<String, dynamic>>[];
+
+    // Generate data from oldest to newest for chronological chart display
+    for (int i = months - 1; i >= 0; i--) {
+      // DateTime constructor handles overflow/underflow (e.g. month 0 is Dec of previous year)
+      final monthDate = DateTime(now.year, now.month - i);
+      
+      final monthIncomes = _incomes.where((inc) =>
+          inc.date.year == monthDate.year && inc.date.month == monthDate.month);
+      final monthExpenses = _expenses.where((exp) =>
+          exp.date.year == monthDate.year && exp.date.month == monthDate.month);
+
+      final totalInc = monthIncomes.fold(0.0, (sum, item) => sum + item.amount);
+      final totalExp = monthExpenses.fold(0.0, (sum, item) => sum + item.amount);
+
+      results.add({
+        'month': monthDate.month,
+        'savings': totalInc - totalExp,
+      });
+    }
+    return results;
+  }
+
+  /// Get detailed breakdown for reports (Requirement 2 & 13)
+  /// Returns a summary of income, expenses, and savings per month.
+  List<Map<String, dynamic>> getMonthlyBreakdown({int limit = 6}) {
+    final now = DateTime.now();
+    final results = <Map<String, dynamic>>[];
+    
+    const monthNames = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'
+    ];
+
+    // Generate data from newest to oldest for the report list
+    for (int i = 0; i < limit; i++) {
+      final monthDate = DateTime(now.year, now.month - i);
+
+      final monthIncomes = _incomes.where((inc) =>
+          inc.date.year == monthDate.year && inc.date.month == monthDate.month);
+      final monthExpenses = _expenses.where((exp) =>
+          exp.date.year == monthDate.year && exp.date.month == monthDate.month);
+
+      final totalInc = monthIncomes.fold(0.0, (sum, item) => sum + item.amount);
+      final totalExp = monthExpenses.fold(0.0, (sum, item) => sum + item.amount);
+      final savings = totalInc - totalExp;
+      final rate = totalInc > 0 ? (savings / totalInc) * 100 : 0.0;
+
+      results.add({
+        'month': '${monthNames[monthDate.month - 1]} ${monthDate.year}',
+        'income': totalInc,
+        'expense': totalExp,
+        'savings': savings,
+        'rate': rate,
+      });
+    }
+    return results;
+  }
 }

@@ -646,22 +646,15 @@ class _SavingsTrackerScreenState extends State<SavingsTrackerScreen>
   }
 
   List<double> _generateMonthlyData(TransactionService service) {
-    final double base = service.netSavings > 0
-        ? service.netSavings.toDouble()
-        : 100000.0;
-
-    return [
-      base * 0.4,
-      base * 0.55,
-      base * 0.6,
-      base * 0.75,
-      base * 0.85,
-      base,
-    ];
+    // Retrieve actual monthly savings history from the service
+    final history = service.getMonthlySavingsHistory(months: 6);
+    if (history.isEmpty) return List.filled(6, 0.0);
+    return history.map((e) => (e['savings'] as num).toDouble()).toList();
   }
 
   Widget _buildMonthlyBreakdown(TransactionService service) {
-    final monthlyBreakdown = _generateMonthlyBreakdown(service);
+    // Fetch real breakdown data from the service
+    final monthlyBreakdown = service.getMonthlyBreakdown(limit: 6);
 
     return Container(
       width: double.infinity,
@@ -694,49 +687,6 @@ class _SavingsTrackerScreenState extends State<SavingsTrackerScreen>
         ],
       ),
     );
-  }
-
-  List<Map<String, dynamic>> _generateMonthlyBreakdown(
-    TransactionService service,
-  ) {
-    final now = DateTime.now();
-
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-
-    final baseIncome = service.totalIncome > 0 ? service.totalIncome : 250000;
-
-    final baseExpense = service.totalExpense > 0
-        ? service.totalExpense
-        : 108000;
-
-    return List.generate(6, (index) {
-      final monthDate = DateTime(now.year, now.month - (5 - index));
-
-      final income = baseIncome * (0.8 + (index * 0.05));
-
-      final expense = baseExpense * (0.85 + (index * 0.03));
-
-      return {
-        'month': months[monthDate.month - 1],
-        'income': income,
-        'expense': expense,
-        'savings': income - expense,
-        'rate': ((income - expense) / income * 100),
-      };
-    });
   }
 
   Widget _buildMonthTile(Map<String, dynamic> data) {
